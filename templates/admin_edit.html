@@ -69,6 +69,13 @@
       color: blue;
       cursor: pointer;
     }
+    .delete-btn {
+    margin-left: 4px;
+    color: red;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -126,13 +133,15 @@
                   {% set shift_items = shifts.get(staff.name, {}).get(date, {}).items() | sort %}
                   {% for i in range(3) %}
                     <div class="shift-block shift_{{ staff.name|replace(' ', '_') }}_{{ date }}_{{ i }}"
-                         {% if i > 0 and shift_items|length <= i %}style="display:none"{% endif %}>
+                        {% if i > 0 and shift_items|length <= i %}style="display:none"{% endif %}>
                       <input type="time" name="start_{{ staff.name|replace(' ', '_') }}_{{ date }}_{{ i }}"
                         value="{{ shift_items[i][1][0] if shift_items|length > i else '' }}">
                       <input type="time" name="end_{{ staff.name|replace(' ', '_') }}_{{ date }}_{{ i }}"
                         value="{{ shift_items[i][1][1] if shift_items|length > i else '' }}">
+                      <span class="delete-btn" onclick="deleteShift(this)">×</span>
                     </div>
                   {% endfor %}
+
                   <div class="add-btn" onclick="addShift('{{ staff.name|replace(' ', '_') }}', '{{ date }}')">＋シフト追加</div>
                 </div>
               </td>
@@ -188,6 +197,12 @@
         }
       }
     }
+    function deleteShift(btn) {
+      const inputs = btn.parentElement.querySelectorAll('input');
+      inputs.forEach(input => input.value = '');
+    }
+
+
   </script>
 </body>
 </html>

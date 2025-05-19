@@ -13,7 +13,7 @@ from utils.csv_utils import (
 
 
 admin_blueprint = Blueprint("admin", __name__)
-staff_list = load_staff()
+staff_list = sort_staff_list(load_staff())
 
 @admin_blueprint.route("/admin/home")
 def admin_home():
@@ -23,6 +23,8 @@ def admin_home():
 
 @admin_blueprint.route("/admin/edit", methods=["GET", "POST"])
 def admin_edit():
+    staff_list = sort_staff_list(load_staff())
+    
     if session.get("role") != "admin":
         return redirect(url_for("auth.login"))
 
@@ -68,17 +70,26 @@ def admin_edit():
                        for start, end in d.values())
         for s in staff_list if s.get("type") == "社員"
     }
+    group_name_map = {
+        0: "社員",
+        1: "複数・両方", 2: "複数・キッチン", 3: "複数・トップ",
+        4: "朝・両方", 5: "朝・キッチン", 6: "朝・トップ",
+        7: "昼・両方", 8: "昼・キッチン", 9: "昼・トップ",
+        10: "夜・両方", 11: "夜・キッチン", 12: "夜・トップ",
+    }
+
+
+
 
     return render_template("admin_edit.html",
-                           dates=dates,
-                           staff_list=staff_list,
-                           shifts=shifts,
-                           total_hours=total_hours,
-                           group_name_map={},
-                           notes=notes,
-                           month=month,
-                           calculate_shift_hours=calculate_shift_hours  # ← これ追加！
-                           )
+                        dates=dates,
+                        staff_list=staff_list,
+                        shifts=shifts,
+                        total_hours=total_hours,
+                        group_name_map=group_name_map,
+                        notes=notes,
+                        month=month,
+                        calculate_shift_hours=calculate_shift_hours)
 
 
 # その他 add_staff、upload_staff、import_shift などのルートもここに追加可能

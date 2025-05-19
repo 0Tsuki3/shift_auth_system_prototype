@@ -24,27 +24,33 @@ def load_staff():
                 "shift_pref": row.get("shift_pref", ""),
             })
         return staff_list
-
-
+    
+    
 def sort_staff_list(staff_list):
-    def score(staff):
-        if staff['position'] == '社員':
-            staff['group'] = 0
-            return (0, 0, staff['name'])
+    def get_group(staff):
+        if staff["type"] == "社員":
+            return 0  # 社員は常にグループ0
 
-        time_map = {'オール': 1, '朝': 2, '昼': 3, '夜': 4}
-        role_map = {'両方': 0, 'キッチン': 1, 'トップ': 2}
-        exp_score = 0 if staff.get('experience') == 'ベテラン' else 1
+        shift_pref_order = ["複数", "朝", "昼", "夜"]
+        position_order = ["両方", "キッチン", "トップ"]
 
-        # 🛠 shift_pref に修正
-        time_score = time_map.get(staff.get('shift_pref', 'オール'), 1)
-        role_score = role_map.get(staff.get('position', ''), 2)
+        try:
+            time_index = shift_pref_order.index(staff["shift_pref"])
+        except ValueError:
+            time_index = len(shift_pref_order)
 
-        group = (time_score - 1) * 3 + 1 + role_score
-        staff['group'] = group
-        return (group, exp_score, staff['name'])
+        try:
+            pos_index = position_order.index(staff["position"])
+        except ValueError:
+            pos_index = len(position_order)
 
-    return sorted(staff_list, key=score)
+        # グループ番号は 1～（社員を0として）
+        return 1 + time_index * len(position_order) + pos_index
+
+    for staff in staff_list:
+        staff["group"] = get_group(staff)
+
+    return sorted(staff_list, key=lambda s: (s["group"], s["experience"] != "ベテラン", s["name"]))
 
 def calculate_shift_hours(start, end):
     from datetime import datetime
