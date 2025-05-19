@@ -10,5 +10,8 @@ app.register_blueprint(auth_blueprint)
 app.register_blueprint(admin_blueprint)
 app.register_blueprint(staff_blueprint)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__ == '__main__':
+    import os
+    port = int(os.environ.get('PORT', 10000))  # ← RenderではPORT環境変数が使われる
+    register_upload_routes(app, staff_list, shift_list)
+    app.run(host='0.0.0.0', port=port)
