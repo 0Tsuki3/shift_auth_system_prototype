@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>管理者ログイン</title>
+</head>
+<body>
+  <h2>管理者ログイン</h2>
+  {% if error %}
+    <p style="color:red;">{{ error }}</p>
+  {% endif %}
+  <form method="POST">
+    <label>アカウント名: <input type="text" name="account"></label><br>
+    <label>パスワード: <input type="password" name="password"></label><br><br>
+    <button type="submit">ログイン</button>
+  </form>
+</body>
+</html>

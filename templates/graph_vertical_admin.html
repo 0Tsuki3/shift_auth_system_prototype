@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>管理者用シフト人数グラフ（縦型）</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    .graph-container {
+      display: flex;
+      align-items: flex-end;
+      gap: 32px;
+      overflow-x: auto;
+      height: 600px;
+    }
+    .bar-wrapper {
+      display: flex;
+    }
+    .time-labels {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      justify-content: flex-start;
+      margin-right: 4px;
+      font-size: 10px;
+      color: #555;
+    }
+    .time-label {
+      height: 1px;
+      margin-bottom: 0;
+    }
+    .bar {
+      position: relative;
+      width: 40px;
+      background: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      border: 1px solid #ccc;
+    }
+    .segment {
+      width: 100%;
+      border-top: 1px solid #aaa;
+      text-align: center;
+      font-size: 10px;
+      background: #90caf9;
+      position: relative;
+      cursor: pointer;
+    }
+    .segment-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 0 2px;
+      font-size: 10px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .tooltip {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 100%;
+      margin-left: 6px;
+      padding: 4px 6px;
+      background: white;
+      border: 1px solid #999;
+      font-size: 10px;
+      white-space: nowrap;
+      z-index: 100;
+    }
+    .bar-label {
+      text-align: center;
+      margin-top: 4px;
+      font-size: 12px;
+    }
+    .note-label {
+      font-size: 10px;
+      text-align: center;
+      margin-bottom: 4px;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <h2>{{ month }} 管理者用シフト人数グラフ</h2>
+  <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
+  <div class="graph-container">
+    {% for day in graph_data %}
+      <div>
+        <div class="note-label">{{ notes.get(day.date, '') }}</div>
+        <div class="bar-wrapper">
+          <div class="time-labels" style="height: 500px;">
+            {% for segment in day.segments %}
+              <div class="time-label" style="height: {{ segment.height }}px;">
+                {{ segment.start.replace(':30', '.5').replace(':00', '') }}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="bar" style="height: 500px;">
+            {% for segment in day.segments %}
+              <div class="segment" style="height: {{ segment.height }}px;" data-members="{{ segment.members|join(', ') }}">
+                <div class="segment-label">
+                  {{ segment.count }}人
+                </div>
+                <div class="tooltip"></div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="bar-label">{{ day.date[-2:] }}日</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <script>
+    document.querySelectorAll('.segment').forEach(segment => {
+      segment.addEventListener('click', () => {
+        const tooltip = segment.querySelector('.tooltip');
+        const members = segment.dataset.members;
+
+        if (tooltip.style.display === 'block') {
+          tooltip.style.display = 'none';
+        } else {
+          document.querySelectorAll('.tooltip').forEach(t => t.style.display = 'none');
+          tooltip.innerHTML = (members ? members.split(', ').join('<br>') : '（メンバーなし）');
+          tooltip.style.display = 'block';
+        }
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.segment')) {
+        document.querySelectorAll('.tooltip').forEach(t => t.style.display = 'none');
+      }
+    });
+  </script>
+</body>
+</html>

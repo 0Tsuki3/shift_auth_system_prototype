@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>スタッフ一括アップロード</title>
+</head>
+<body>
+  <h2>スタッフCSV一括登録</h2>
+  <form method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".csv" required>
+    <button type="submit">アップロード</button>
+  </form>
+
+  <h3>CSVフォーマット例</h3>
+  <pre>
+    account,last_name,first_name,password,position,experience,type,shift_pref
+    tokunaga,徳永,店長,tokunaga,両方,ベテラン,社員,複数
+    noguti,野口,真桜,noguti,トップ,新人,バイト,夜
+  </pre>
+  
+  <a href="{{ url_for('admin.admin_home') }}">← 戻る</a>
+</body>
+</html>

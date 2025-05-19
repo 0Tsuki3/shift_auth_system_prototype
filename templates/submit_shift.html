@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>シフト希望提出</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      vertical-align: top;
+    }
+    .day-cell {
+      height: 160px;
+    }
+    input[type="time"] {
+      width: 90%;
+      margin-top: 4px;
+    }
+    .add-btn {
+      margin-top: 4px;
+      font-size: 0.8em;
+      color: blue;
+      cursor: pointer;
+    }
+    .delete-btn {
+      margin-top: 4px;
+      font-size: 0.75em;
+      color: red;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <p>
+    <a href="{{ url_for('staff.account_page', account=account) }}">← メニューに戻る</a> |
+    <a href="{{ url_for('staff.submit_month_select', account=account) }}">月選択に戻る</a>
+  </p>
+  
+  <h2>{{ name }}さんのシフト希望（{{ month }}）</h2>
+
+  {% if submitted_at %}
+    <p style="color: green;">
+      最終提出日時：{{ submitted_at }}
+    </p>
+    <form method="GET" action="{{ url_for('staff.submit_shift', account=account) }}">
+      <input type="hidden" name="month" value="{{ month }}">
+      <input type="hidden" name="reset" value="1">
+      <button type="submit" onclick="return confirm('送信状態を解除して編集可能にします。よろしいですか？')">
+        🚫 送信状態を解除する
+      </button>
+    </form>
+    <hr>
+  {% endif %}
+
+  <form method="POST">
+    <table>
+      <tr>
+        <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
+      </tr>
+
+      {% set first_weekday = 3 %}
+      {% set total_days = 31 %}
+      {% set total_cells = ((first_weekday + total_days + 6) // 7) * 7 %}
+
+      {% for cell in range(total_cells) %}
+        {% if loop.index0 % 7 == 0 %}<tr>{% endif %}
+
+        {% set day_number = cell - first_weekday + 1 %}
+        {% if cell < first_weekday or day_number > total_days %}
+          <td class="day-cell"></td>
+        {% else %}
+          {% set date_str = month + "-" + "%02d"|format(day_number) %}
+          <td class="day-cell" id="cell_{{ date_str }}">
+            <strong>{{ day_number }}日</strong><br>
+            {% for i in range(3) %}
+              <div class="shift-input shift_{{ date_str }}_{{ i }}" {% if i > 0 and not shifts.get(date_str, {}).get(i) %}style="display:none"{% endif %}>
+                <input type="time" name="start_{{ i }}_{{ date_str }}" value="{{ shifts.get(date_str, {}).get(i, {}).get('start', '') }}"><br>
+                <input type="time" name="end_{{ i }}_{{ date_str }}" value="{{ shifts.get(date_str, {}).get(i, {}).get('end', '') }}"><br>
+                <button type="button" class="delete-btn" onclick="removeShift('{{ date_str }}', {{ i }})">削除</button>
+              </div>
+            {% endfor %}
+            <div class="add-btn" onclick="addShift('{{ date_str }}')">＋シフト追加</div>
+          </td>
+        {% endif %}
+
+        {% if loop.index0 % 7 == 6 %}</tr>{% endif %}
+      {% endfor %}
+    </table>
+    <br>
+    <button type="submit" name="action" value="save">💾 保存</button>
+    <button type="submit" name="action" value="submit">📤 送信</button>
+
+  </form>
+
+  <script>
+    function addShift(dateStr) {
+      for (let i = 1; i <= 2; i++) {
+        const shiftBlock = document.querySelector(`.shift_${dateStr}_${i}`);
+        if (shiftBlock && shiftBlock.style.display === 'none') {
+          shiftBlock.style.display = 'block';
+          break;
+        }
+      }
+    }
+
+    function removeShift(dateStr, i) {
+      const start = document.querySelector(`input[name="start_${i}_${dateStr}"]`);
+      const end = document.querySelector(`input[name="end_${i}_${dateStr}"]`);
+      if (start) start.value = '';
+      if (end) end.value = '';
+    }
+  </script>
+
+</body>
+</html>

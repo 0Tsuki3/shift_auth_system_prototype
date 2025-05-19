@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>スタッフホーム</title>
+</head>
+<body>
+  <h1>{{ name }}さん、ようこそ！</h1>
+  <ul>
+    <li><a href="{{ url_for('staff.submit_month_select', account=account) }}">📝 シフト希望一覧</a></li>
+    <!-- 必要になったら他の機能もここに追加 -->
+  </ul>
+</body>
+</html>

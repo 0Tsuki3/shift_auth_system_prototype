@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>シフト編集</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; margin: 0; }
+    .header-bar {
+      position: sticky; top: 0; background: white;
+      padding: 10px 0; z-index: 20;
+    }
+    .table-wrapper {
+      overflow: auto;
+      max-height: 80vh;
+    }
+    table {
+      border-collapse: collapse;
+      width: max-content;
+      min-width: 100%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 5px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    th { background-color: #f0f0f0; z-index: 10; }
+    th.sticky-left, td.sticky-left {
+      position: sticky;
+      left: 0;
+      background-color: #fff;
+      z-index: 15;
+      min-width: 100px;
+    }
+    th.sticky-top {
+      position: sticky;
+      top: 0;
+      z-index: 12;
+    }
+    td.sticky-top-second {
+      position: sticky;
+      top: 33px;
+      background-color: #f9f9f9;
+      z-index: 11;
+    }
+    .edit input { width: 60px; }
+    .edit-cell.error {
+      background-color: #ffcccc !important;
+      border: 2px solid red;
+    }
+    .edit-cell.changed {
+      background-color: #d0f0ff !important;
+    }
+    .mode-toggle { margin-right: 10px; }
+    .group-separator td {
+      background-color: #eef;
+      font-weight: bold;
+    }
+    .group-label {
+      text-align: left;
+      padding-left: 8px;
+    }
+    .shift-line {
+      margin-bottom: 2px;
+    }
+    .add-btn {
+      margin-top: 4px;
+      font-size: 0.8em;
+      color: blue;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <button class="mode-toggle" onclick="toggleEditMode()">編集モード切替</button>
+    <button type="submit" form="shiftForm">保存</button>
+    <a href="{{ url_for('admin.admin_home') }}" style="margin-left: 20px;">🏠 ホームに戻る</a>
+    <a href="{{ url_for('admin.admin_edit') }}" style="margin-left: 10px;">📅 月選択に戻る</a>
+  </div>
+  
+
+  <div class="table-wrapper">
+    <form id="shiftForm" method="post">
+      <table>
+        <thead>
+  <tr>
+    <th class="sticky-left sticky-top" rowspan="3">名前</th>
+    {% for date in dates %}
+      <th class="sticky-top">{{ date }}</th>
+    {% endfor %}
+    <th class="sticky-top" rowspan="3">月間合計</th>
+  </tr>
+  <tr>
+    {% for date in dates %}
+      <td class="sticky-top-second">
+        <input type="text" name="note_{{ date }}" value="{{ notes.get(date, '') }}" style="width: 80px; font-size: 12px;">
+      </td>
+    {% endfor %}
+  </tr>
+  <tr>
+    {% for _ in dates %}
+      <td class="sticky-top-second">労働時間</td>
+    {% endfor %}
+  </tr>
+        </thead>
+
+        <tbody>
+          {% for staff in staff_list %}
+            {% if loop.index0 == 0 or staff.group != staff_list[loop.index0 - 1].group %}
+              <tr class="group-separator">
+                <td class="sticky-left group-label">▼ {{ group_name_map[staff.group] }}</td>
+                <td colspan="{{ dates|length + 1 }}"></td>
+              </tr>
+            {% endif %}
+            <tr>
+              <td class="sticky-left">{{ staff.name }}</td>
+              {% for date in dates %}
+              <td class="edit-cell" data-name="{{ staff.name|replace(' ', '_') }}" data-date="{{ date }}">
+                <div class="view-mode">
+                  {% for shift in shifts.get(staff.name, {}).get(date, {}).values() %}
+                    <div class="shift-line">{{ shift[0] }}-{{ shift[1] }}</div>
+                  {% endfor %}
+                </div>
+                <div class="edit" style="display:none;">
+                  {% set shift_items = shifts.get(staff.name, {}).get(date, {}).items() | sort %}
+                  {% for i in range(3) %}
+                    <div class="shift-block shift_{{ staff.name|replace(' ', '_') }}_{{ date }}_{{ i }}"
+                         {% if i > 0 and shift_items|length <= i %}style="display:none"{% endif %}>
+                      <input type="time" name="start_{{ staff.name|replace(' ', '_') }}_{{ date }}_{{ i }}"
+                        value="{{ shift_items[i][1][0] if shift_items|length > i else '' }}">
+                      <input type="time" name="end_{{ staff.name|replace(' ', '_') }}_{{ date }}_{{ i }}"
+                        value="{{ shift_items[i][1][1] if shift_items|length > i else '' }}">
+                    </div>
+                  {% endfor %}
+                  <div class="add-btn" onclick="addShift('{{ staff.name|replace(' ', '_') }}', '{{ date }}')">＋シフト追加</div>
+                </div>
+              </td>
+              {% endfor %}
+              <td>
+                {% if staff.type == '社員' %}
+                  {{ total_hours.get(staff.name, 0) | round(1) }}h
+                {% endif %}
+              </td>
+            </tr>
+            {% if staff.type == '社員' %}
+              <tr>
+                <td class="sticky-left"></td>
+                {% for date in dates %}
+                  <td>
+                    {% for shift in shifts.get(staff.name, {}).get(date, {}).values() %}
+                      {{ calculate_shift_hours(shift[0], shift[1]) | round(1) }}h<br>
+                    {% endfor %}
+                  </td>
+                {% endfor %}
+                <td></td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </form>
+  </div>
+
+  <script>
+    function toggleEditMode() {
+      const allCells = document.querySelectorAll('.edit-cell');
+      allCells.forEach(cell => {
+        const view = cell.querySelector('.view-mode');
+        const edit = cell.querySelector('.edit');
+        if (view.style.display === "none") {
+          view.style.display = "block";
+          edit.style.display = "none";
+        } else {
+          view.style.display = "none";
+          edit.style.display = "block";
+        }
+      });
+    }
+
+    function addShift(name, date) {
+      for (let i = 1; i <= 2; i++) {
+        const selector = `.shift_${name}_${date}_${i}`;
+        const block = document.querySelector(selector);
+        if (block && block.style.display === "none") {
+          block.style.display = "block";
+          break;
+        }
+      }
+    }
+  </script>
+</body>
+</html>

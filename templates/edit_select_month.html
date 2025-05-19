@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>編集月選択</title></head>
+<body>
+  <h2>シフトを編集したい月を選んでください</h2>
+  <ul>
+    {% for m in month_list %}
+      <li><a href="{{ url_for('admin.admin_edit', month=m) }}">{{ m }} の編集</a></li>
+    {% endfor %}
+  </ul>
+  <a href="{{ url_for('admin.admin_home') }}">← 管理者ホームに戻る</a>  
+</body>
+</html>

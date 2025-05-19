@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>シフト提出 - 月選択</title>
+</head>
+<body>
+  <p><a href="{{ url_for('staff.account_page', account=account) }}">← メニューに戻る</a></p>
+
+  <h2>{{ name }}さんのシフト提出</h2>
+  <table border="1">
+    <tr><th>対象月</th><th>ステータス</th><th>操作</th></tr>
+    {% for month in month_list %}
+    <tr>
+      <td>{{ month }}</td>
+      <td>
+        {% if status_map[month] %}
+          提出済み（{{ status_map[month] }}）
+        {% else %}
+          未提出
+        {% endif %}
+      </td>
+      <td>
+        {% if is_editable(month, status_map[month]) %}
+          <a href="{{ url_for('staff.submit_shift', account=account, month=month) }}">✏ 編集</a>
+        {% else %}
+          <span style="color: gray;">編集不可</span>
+        {% endif %}
+        |
+        <a href="{{ url_for('staff.view_shift', account=account, month=month) }}">📄 閲覧</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

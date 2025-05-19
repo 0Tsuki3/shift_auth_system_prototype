@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>シフト確認</title>
+</head>
+<body>
+  <h2>{{ name }}さんの{{ month }}のシフト</h2>
+  {% if shifts %}
+    <table border="1">
+      <tr>
+        <th>日付</th><th>開始</th><th>終了</th><th>希望時間</th>
+      </tr>
+      {% for s in shifts %}
+        <tr>
+          <td>{{ s.date }}</td>
+          <td>{{ s.start }}</td>
+          <td>{{ s.end }}</td>
+          <td>{{ s.wished }} h</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>シフトが登録されていません。</p>
+  {% endif %}
+  <br>
+  <a href="{{ url_for('staff.submit_month_select', account=session['account']) }}">← 戻る</a>
+</body>
+</html>

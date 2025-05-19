@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>シフト希望インポート確認</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+    th { background-color: #f0f0f0; }
+    .warning { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>{{ next_month }} のシフト希望インポート確認</h2>
+
+  {% if submitted_list %}
+    <form method="POST" action="{{ url_for('admin.import_shift') }}">
+      <input type="hidden" name="month" value="{{ next_month }}">
+      <table>
+        <thead>
+          <tr>
+            <th>インポート</th>
+            <th>アカウント</th>
+            <th>名前</th>
+            <th>提出日時</th>
+            <th>件数</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for group in submitted_list %}
+            <tr>
+              <td><input type="checkbox" name="accounts" value="{{ group.account }}" checked></td>
+              <td>{{ group.account }}</td>
+              <td>{{ group.name }}</td>
+              <td>{{ group.submitted_at }}</td>
+              <td>{{ group.count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <br>
+      <button type="submit">✅ 選択したスタッフのみインポート</button>
+    </form>
+  {% else %}
+    <p class="warning">翌月の提出済みシフト希望がありません。</p>
+  {% endif %}
+
+  <br>
+  <hr>
+  <h3>未提出のスタッフ</h3>
+  {% if not_submitted %}
+    <table>
+      <thead>
+        <tr>
+          <th>アカウント</th>
+          <th>名前</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for person in not_submitted %}
+          <tr>
+            <td>{{ person.account }}</td>
+            <td>{{ person.name }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>全員が提出済みです。</p>
+  {% endif %}
+
+  <br>
+  <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
+</body>
+</html>

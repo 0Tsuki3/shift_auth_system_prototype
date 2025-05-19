@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>スタッフ登録</title>
+</head>
+<body>
+  <h2>新規スタッフ登録</h2>
+  {% if message %}
+    <p style="color: green;">{{ message }}</p>
+  {% endif %}
+  <form method="POST">
+    <label>アカウントID: <input type="text" name="account" required></label><br>
+    <label>姓: <input type="text" name="last_name" required></label><br>
+    <label>名: <input type="text" name="first_name" required></label><br>
+    <label>パスワード: <input type="password" name="password" required></label><br>
+    <label>ポジション:
+      <select name="position">
+        <option value="トップ">トップ</option>
+        <option value="キッチン">キッチン</option>
+        <option value="両方">両方</option>
+      </select>
+    </label><br>
+    <label>経験区分:
+      <select name="experience">
+        <option value="ベテラン">ベテラン</option>
+        <option value="新人">新人</option>
+      </select>
+    </label><br>
+    <label>雇用区分:
+      <select name="type">
+        <option value="バイト">バイト</option>
+        <option value="社員">社員</option>
+      </select>
+    </label><br>
+    <label>希望帯:
+      <select name="shift_pref">
+        <option value="朝">朝</option>
+        <option value="昼">昼</option>
+        <option value="夜">夜</option>
+        <option value="複数">複数</option>
+      </select>
+    </label><br><br>
+    <button type="submit">登録</button>
+  </form>
+</body>
+</html>

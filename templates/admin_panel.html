@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>管理者パネル</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <h2>管理者パネル - シフト提出一覧</h2>
+  <table>
+    <tr>
+      <th>アカウント</th>
+      <th>名前</th>
+      <th>日付</th>
+      <th>開始</th>
+      <th>終了</th>
+      <th>希望時間</th>
+    </tr>
+    {% for row in shifts %}
+    <tr>
+      <td>{{ row.account }}</td>
+      <td>{{ row.name }}</td>
+      <td>{{ row.date }}</td>
+      <td>{{ row.start }}</td>
+      <td>{{ row.end }}</td>
+      <td>{{ row.wished }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
