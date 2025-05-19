@@ -8,12 +8,21 @@
       width: 100%;
       border-collapse: collapse;
       table-layout: fixed;
+      position: relative;
     }
-    th, td {
+
+    td {
       border: 1px solid #ccc;
       padding: 6px;
       vertical-align: top;
     }
+    
+    
+    body {
+      overflow-y: auto;
+    }
+
+    
     .day-cell {
       height: 160px;
     }
@@ -35,6 +44,37 @@
       border: none;
       cursor: pointer;
     }
+
+    
+    {% if not submitted_at %}
+      .warning-fixed {
+        position: sticky;
+        top: 0;
+        background: #fff0f0;
+        color: red;
+        font-weight: bold;
+        padding: 10px;
+        z-index: 10;
+        border-bottom: 2px solid red;
+      }
+
+      th {
+        position: sticky;
+        top: 70px;  /* ← 警告文があるときはずらす */
+        background: white;
+        z-index: 2;
+      }
+    {% else %}
+      th {
+        position: sticky;
+        top: 0;  /* ← 警告文がないときは上にくっつける */
+        background: white;
+        z-index: 2;
+      }
+    {% endif %}
+
+
+  
   </style>
 </head>
 <body>
@@ -45,28 +85,24 @@
   
   <h2>{{ name }}さんのシフト希望（{{ month }}）</h2>
 
-  {% if submitted_at %}
+  {% if not submitted_at %}
+    <div class="warning-fixed">
+      ⚠️ このシフトはまだ送信されていません。<br>
+      下の「📤送信」ボタンを押すと確定となります。
+    </div>
+  {% else %}
     <p style="color: green;">
       最終提出日時：{{ submitted_at }}
     </p>
-    <form method="GET" action="{{ url_for('staff.submit_shift', account=account) }}">
-      <input type="hidden" name="month" value="{{ month }}">
-      <input type="hidden" name="reset" value="1">
-      <button type="submit" onclick="return confirm('送信状態を解除して編集可能にします。よろしいですか？')">
-        🚫 送信状態を解除する
-      </button>
-    </form>
-    <hr>
   {% endif %}
 
   <form method="POST">
     <table>
       <tr>
-        <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
+        <th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th><th>日</th>
       </tr>
 
-      {% set first_weekday = 3 %}
-      {% set total_days = 31 %}
+      
       {% set total_cells = ((first_weekday + total_days + 6) // 7) * 7 %}
 
       {% for cell in range(total_cells) %}
@@ -83,8 +119,11 @@
               <div class="shift-input shift_{{ date_str }}_{{ i }}" {% if i > 0 and not shifts.get(date_str, {}).get(i) %}style="display:none"{% endif %}>
                 <input type="time" name="start_{{ i }}_{{ date_str }}" value="{{ shifts.get(date_str, {}).get(i, {}).get('start', '') }}"><br>
                 <input type="time" name="end_{{ i }}_{{ date_str }}" value="{{ shifts.get(date_str, {}).get(i, {}).get('end', '') }}"><br>
+                <button type="button" class="copy-btn" onclick="applyToFollowingWeeks('{{ date_str }}', {{ i }})">
+                  ↪ 週へ
+                </button><br>
                 <button type="button" class="delete-btn" onclick="removeShift('{{ date_str }}', {{ i }})">削除</button>
-              </div>
+              </div>            
             {% endfor %}
             <div class="add-btn" onclick="addShift('{{ date_str }}')">＋シフト追加</div>
           </td>
@@ -94,8 +133,10 @@
       {% endfor %}
     </table>
     <br>
-    <button type="submit" name="action" value="save">💾 保存</button>
-    <button type="submit" name="action" value="submit">📤 送信</button>
+    <button type="submit" name="action" value="save">💾 保存（送信せず保存）</button>
+    <button type="submit" name="action" value="submit">📤 送信（確定）</button>
+
+
 
   </form>
 
@@ -116,6 +157,39 @@
       if (start) start.value = '';
       if (end) end.value = '';
     }
+
+    
+    function applyToFollowingWeeks(dateStr, index) {
+      const startInput = document.querySelector(`input[name='start_${index}_${dateStr}']`);
+      const endInput = document.querySelector(`input[name='end_${index}_${dateStr}']`);
+      if (!startInput || !endInput) return;
+
+      const startTime = startInput.value;
+      const endTime = endInput.value;
+      if (!startTime || !endTime) return;
+
+      const baseDate = new Date(dateStr);
+      const year = baseDate.getFullYear();
+      const month = baseDate.getMonth(); // 0-indexed
+
+      for (let i = 1; i <= 4; i++) {
+        const nextDate = new Date(baseDate);
+        nextDate.setDate(baseDate.getDate() + i * 7);
+
+        if (nextDate.getMonth() !== month) break;
+
+        const yyyyMmDd = nextDate.toISOString().slice(0, 10);
+        const nextStartInput = document.querySelector(`input[name='start_${index}_${yyyyMmDd}']`);
+        const nextEndInput = document.querySelector(`input[name='end_${index}_${yyyyMmDd}']`);
+
+        if (nextStartInput && nextEndInput && !nextStartInput.value && !nextEndInput.value) {
+          nextStartInput.value = startTime;
+          nextEndInput.value = endTime;
+        }
+      }
+    }
+
+
   </script>
 
 </body>

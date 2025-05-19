@@ -1,5 +1,7 @@
 # utils/date_utils.py
-from datetime import datetime
+
+from datetime import datetime, timedelta
+
 
 def is_editable(month: str, submitted_at: str | None) -> bool:
     """その月のシフトが編集可能かどうか"""
@@ -28,3 +30,43 @@ def is_editable(month: str, submitted_at: str | None) -> bool:
 
     # 4. 締切後でも未提出ならまだOK
     return True
+
+
+def generate_weekdays_for_month(month_str):
+    """
+    month_str: '2025-06' のような形式
+    return: {'2025-06-01': '日', '2025-06-02': '月', ...}
+    """
+    weekdays = ['月', '火', '水', '木', '金', '土', '日']
+    result = {}
+    year, month = map(int, month_str.split('-'))
+    for day in range(1, 32):
+        try:
+            date = datetime(year, month, day)
+        except ValueError:
+            break
+        date_str = date.strftime("%Y-%m-%d")
+        weekday_str = weekdays[date.weekday()]
+        result[date_str] = weekday_str
+    return result
+
+
+def generate_date_label_list(month_str):
+    """
+    month_str: '2025-06'
+    return: [{'date': '2025-06-01', 'label': '06-01（日）'}, ...]
+    """
+    weekdays = ['月', '火', '水', '木', '金', '土', '日']
+    result = []
+    year, month = map(int, month_str.split('-'))
+
+    for day in range(1, 32):
+        try:
+            date = datetime(year, month, day)
+        except ValueError:
+            break
+        date_str = date.strftime("%Y-%m-%d")
+        label = date.strftime("%m-%d") + f"（{weekdays[date.weekday()]}）"
+        result.append({"date": date_str, "label": label})
+
+    return result

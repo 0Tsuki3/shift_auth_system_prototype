@@ -93,9 +93,10 @@
         <thead>
   <tr>
     <th class="sticky-left sticky-top" rowspan="3">名前</th>
-    {% for date in dates %}
-      <th class="sticky-top">{{ date }}</th>
+    {% for d in date_labels %}
+      <th class="sticky-top">{{ d.label }}</th>
     {% endfor %}
+
     <th class="sticky-top" rowspan="3">月間合計</th>
   </tr>
   <tr>

@@ -1,17 +1,24 @@
 # routes/staff.py
-from flask import Blueprint, request, render_template, redirect, url_for, session
+from flask import Blueprint, request, render_template, redirect, url_for, session, flash
 import csv
 import os
+
 from datetime import datetime, timedelta
+
 from utils.csv_utils import generate_date_list, load_shift_requests, save_shift_requests, create_monthly_csv_templates
+
 from utils.lock_utils import is_editable  # ← これを忘れずにインポート！
+
+import calendar
+from utils.date_utils import generate_weekdays_for_month
+
+
+
 
 staff_blueprint = Blueprint("staff", __name__)
 
 
 
-# routes/staff.py（抜粋）
-from datetime import datetime
 
 
 def is_month_locked(month: str) -> bool:
@@ -29,18 +36,15 @@ def submit_shift(account):
     name = session["name"]
     month = request.args.get("month", datetime.today().strftime("%Y-%m"))
     create_monthly_csv_templates(month)
+
     shifts = {}
     all_data = load_shift_requests(month)
+    weekday_map = generate_weekdays_for_month(month)
+    first_weekday = ['月', '火', '水', '木', '金', '土', '日'].index(weekday_map[f"{month}-01"])
+    year, m = map(int, month.split("-"))
+    total_days = calendar.monthrange(year, m)[1]
 
-    # 🔸 送信解除処理（クエリパラメータで ?reset=1 が来たら）
-    if request.args.get("reset") == "1":
-        for row in all_data:
-            if row["account"] == account:
-                row["submitted_at"] = ""
-        save_shift_requests(month, all_data)
-        return redirect(url_for("staff.submit_shift", account=account, month=month))
-
-    # 🔸 既存シフト読み込み（その人の分だけ）
+    # 既存シフト読み込み（本人の分だけ）
     for row in all_data:
         if row["account"] == account:
             date, index = row["date"], int(row.get("index", 1))
@@ -49,21 +53,24 @@ def submit_shift(account):
                 "end": row["end"]
             }
 
-    # 🔸 送信日時の取得（この人の中で一番新しいやつ）
+    # 提出状態の判定
     submitted_at = ""
     for row in all_data:
         if row["account"] == account and row.get("submitted_at"):
             submitted_at = max(submitted_at, row["submitted_at"])
 
-    # 🔒 ロック中（submitted_atあり）で送信解除でない場合は編集禁止
+    # POST処理（保存 or 送信）
     if request.method == "POST":
         action = request.form.get("action")  # 'save' or 'submit'
-        if submitted_at and action != "reset":
-            return "すでに送信済みです。編集するには送信状態を解除してください。"
+
+        submitted_at_str = ""
+        if action == "submit":
+            submitted_at_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            flash("送信しました")
+        else:
+            flash("保存しました（未送信の状態です）")
 
         new_data = []
-        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S") if action == "submit" else ""
-
         for key in request.form:
             if key.startswith("start_"):
                 _, index_str, date = key.split("_", 2)
@@ -73,11 +80,17 @@ def submit_shift(account):
                 if start and end:
                     wished = str(round((datetime.strptime(end, "%H:%M") - datetime.strptime(start, "%H:%M")).seconds / 3600, 1))
                     new_data.append({
-                        "account": account, "name": name, "date": date, "index": index,
-                        "start": start, "end": end, "wished": wished,
-                        "submitted_at": now_str
+                        "account": account,
+                        "name": name,
+                        "date": date,
+                        "index": index,
+                        "start": start,
+                        "end": end,
+                        "wished": wished,
+                        "submitted_at": submitted_at_str
                     })
 
+        # 自分以外の行はそのまま残して、新しい分と合成
         others = [r for r in all_data if r["account"] != account]
         save_shift_requests(month, others + new_data)
 
@@ -91,7 +104,10 @@ def submit_shift(account):
         month=month,
         account=account,
         submitted_at=submitted_at,
-        now=datetime.now()
+        now=datetime.now(),
+        first_weekday=first_weekday,
+        weekday_map=weekday_map,
+        total_days=total_days
     )
 
 

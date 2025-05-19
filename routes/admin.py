@@ -2,6 +2,8 @@
 from flask import Blueprint, request, render_template, redirect, url_for, session
 import csv
 import os
+import zipfile
+import io
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 from utils.csv_utils import *
@@ -10,6 +12,10 @@ from utils.csv_utils import (
     load_shift_requests, save_shift_requests,
     save_imported_requests, create_monthly_csv_templates
 )
+from utils.date_utils import generate_date_label_list
+
+from flask import send_file
+
 
 
 admin_blueprint = Blueprint("admin", __name__)
@@ -24,7 +30,7 @@ def admin_home():
 @admin_blueprint.route("/admin/edit", methods=["GET", "POST"])
 def admin_edit():
     staff_list = sort_staff_list(load_staff())
-    
+
     if session.get("role") != "admin":
         return redirect(url_for("auth.login"))
 
@@ -80,6 +86,8 @@ def admin_edit():
 
 
 
+    date_labels = generate_date_label_list(month)
+
 
     return render_template("admin_edit.html",
                         dates=dates,
@@ -89,7 +97,9 @@ def admin_edit():
                         group_name_map=group_name_map,
                         notes=notes,
                         month=month,
-                        calculate_shift_hours=calculate_shift_hours)
+                        calculate_shift_hours=calculate_shift_hours,
+                        date_labels=date_labels
+                        )
 
 
 # その他 add_staff、upload_staff、import_shift などのルートもここに追加可能
@@ -358,3 +368,26 @@ def vertical_graph_admin():
                            graph_data=graph_data,
                            time_slots=time_slots,
                            notes=notes)  # ← 🔥これも忘れずに
+
+
+@admin_blueprint.route("/download")
+def download_all_csv():
+    zip_buffer = io.BytesIO()
+
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for folder_name in ["shift", "shift_request", "imported_requests", "notes"]:
+            folder_path = f"data/{folder_name}"
+            if os.path.exists(folder_path):
+                for filename in os.listdir(folder_path):
+                    if filename.endswith(".csv"):
+                        file_path = os.path.join(folder_path, filename)
+                        zipf.write(file_path, arcname=f"{folder_name}/{filename}")
+
+    zip_buffer.seek(0)
+    return send_file(
+        zip_buffer,
+        mimetype='application/zip',
+        attachment_filename='shift_data.zip',  # ✅ 古いFlaskでもOK
+        as_attachment=True
+    )
+
