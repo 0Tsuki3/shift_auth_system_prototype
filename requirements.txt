@@ -5,3 +5,4 @@ MarkupSafe==1.1.1
 Werkzeug==2.0.2
 icalendar
 gunicorn
+pytz
