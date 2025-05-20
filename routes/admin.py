@@ -12,8 +12,8 @@ from utils.csv_utils import (
     load_shift_requests, save_shift_requests,
     save_imported_requests, create_monthly_csv_templates
 )
-from utils.date_utils import generate_date_label_list
-
+from utils.date_utils import generate_date_label_list, generate_short_date_labels
+from utils.graph_utils import calculate_daily_labor_cost
 from flask import send_file
 
 
@@ -240,7 +240,11 @@ def import_confirm():
         return redirect(url_for("admin.admin_edit", month=month))
 
     # ▼ 全アカウント名取得（staff.csvベース）
-    all_accounts = {s["account"]: f'{s["last_name"]} {s["first_name"]}' for s in staff_list}
+    # これに差し替える（毎回 staff.csv を読み直す）
+    all_accounts = {
+        s["account"]: f'{s["last_name"]} {s["first_name"]}'
+        for s in sort_staff_list(load_staff())
+    }
 
     # ▼ 提出済み & インポート対象（submitted_atあり、かつまだimportedに入ってない）
     submitted_by = {}
@@ -336,6 +340,7 @@ def graph_vertical_admin():
     staff_list = load_staff()
     shift_list = load_shifts(month)
     date_list = generate_date_list(month)
+    date_labels = generate_short_date_labels(month)
 
     # 棒グラフデータを生成（既存の関数を使ってもOK）
     from utils.graph_utils import generate_compact_bar_data
@@ -348,7 +353,9 @@ def graph_vertical_admin():
                            graph_data=graph_data,
                            month=month,
                            notes=notes,
-                           date_list=date_list)
+                           date_list=date_list,
+                           date_labels=date_labels
+                           )
 
 
 from flask import render_template
@@ -360,14 +367,24 @@ def vertical_graph_admin():
     month = "2025-06"
     create_monthly_csv_templates(month)
 
+
+    staff_list = load_staff()
+    shift_list = load_shifts(month)
     graph_data, time_slots = generate_vertical_graph_data_admin(month)
     notes = load_notes(month)  # ← 🔥ここ追加
+    date_labels = generate_short_date_labels(month)
+    daily_cost = calculate_daily_labor_cost(shift_list, staff_list)
+
+
 
     return render_template("graph_vertical_admin.html",
                            month=month,
                            graph_data=graph_data,
                            time_slots=time_slots,
-                           notes=notes)  # ← 🔥これも忘れずに
+                           notes=notes,
+                           date_labels=date_labels,
+                           daily_cost=daily_cost
+                           )  # ← 🔥これも忘れずに
 
 
 @admin_blueprint.route("/download")

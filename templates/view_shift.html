@@ -2,28 +2,126 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>シフト確認</title>
+  <title>確定シフト表示</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; }
+    .header {
+      position: sticky; top: 0; background: white;
+      display: flex; justify-content: space-between;
+      align-items: center; padding: 10px 20px;
+      border-bottom: 1px solid #ccc; z-index: 10;
+      flex-wrap: wrap;
+    }
+    .summary {
+      text-align: right; font-size: 14px;
+    }
+    .container {
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f8f8f8;
+    }
+    .toggle-btn, .download-btn {
+      cursor: pointer;
+      padding: 6px 12px;
+      background: #ddd;
+      border: none;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+    #calendar-view {
+      display: none;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-top: 20px;
+    }
+    .calendar-day {
+      border: 1px solid #ccc;
+      padding: 6px;
+      min-height: 60px;
+    }
+    .calendar-day strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .shift-time {
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+  </style>
 </head>
 <body>
-  <h2>{{ name }}さんの{{ month }}のシフト</h2>
-  {% if shifts %}
-    <table border="1">
-      <tr>
-        <th>日付</th><th>開始</th><th>終了</th><th>希望時間</th>
-      </tr>
-      {% for s in shifts %}
-        <tr>
-          <td>{{ s.date }}</td>
-          <td>{{ s.start }}</td>
-          <td>{{ s.end }}</td>
-          <td>{{ s.wished }} h</td>
-        </tr>
-      {% endfor %}
-    </table>
-  {% else %}
-    <p>シフトが登録されていません。</p>
-  {% endif %}
-  <br>
-  <a href="{{ url_for('staff.submit_month_select', account=session['account']) }}">← 戻る</a>
+  <div class="header">
+    <div>{{ name }}さんの確定シフト（{{ month }}）</div>
+    <div class="summary">
+      合計勤務時間: {{ total_hours }}h<br>
+      給与概算: {{ estimated_pay }}円
+    </div>
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+      <button id="toggle-btn" class="toggle-btn" onclick="toggleView()">📅 カレンダー表示</button>
+      <a href="{{ url_for('staff.download_ics', account=account) }}?month={{ month }}">📥 カレンダー共有（ICS）</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="table-view">
+      <table>
+        <thead>
+          <tr><th>日付</th><th>時間帯</th><th>実働時間</th></tr>
+        </thead>
+        <tbody>
+          {% for row in shift_data %}
+            <tr>
+              <td><button style="all: unset; cursor: pointer; color: blue;">{{ row.label }}</button></td>
+              <td>{{ row.start }} - {{ row.end }}</td>
+              <td>{{ row.hours }}h</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="calendar-view">
+      <div class="calendar">
+        {% for day in calendar_data %}
+          <div class="calendar-day">
+            <strong>{{ day.label }}</strong>
+            {% if day.shift %}
+              <div class="shift-time">
+                {{ day.shift.start }}<br>｜<br>{{ day.shift.end }}
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleView() {
+      const table = document.getElementById("table-view");
+      const calendar = document.getElementById("calendar-view");
+      const btn = document.getElementById("toggle-btn");
+
+      const tableVisible = table.style.display !== "none";
+      table.style.display = tableVisible ? "none" : "block";
+      calendar.style.display = tableVisible ? "block" : "none";
+      btn.textContent = tableVisible ? "📋 表形式で見る" : "📅 カレンダー表示";
+    }
+  </script>
 </body>
 </html>

@@ -27,7 +27,7 @@
           <span style="color: gray;">編集不可</span>
         {% endif %}
         |
-        <a href="{{ url_for('staff.view_shift', account=account, month=month) }}">📄 閲覧</a>
+        <a href="{{ url_for('staff.view_confirmed_shift', account=account, month=month) }}">📄 閲覧</a>
       </td>
     </tr>
     {% endfor %}

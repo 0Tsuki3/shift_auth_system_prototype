@@ -80,3 +80,38 @@ def generate_vertical_graph_data_admin(month):
         })
 
     return graph_data, time_slots
+
+
+
+def calculate_daily_labor_cost(shift_list, staff_list, hourly_wage=1200):
+    """
+    各日のバイトの総人件費を算出する（社員は除外）
+    """
+    staff_info = {s["last_name"] + s["first_name"]: s for s in staff_list}
+    cost_by_date = {}
+
+    for shift in shift_list:
+        # name は name があるなら使い、それ以外は last_name + first_name
+        name = shift.get("name") or (shift.get("last_name", "") + shift.get("first_name", ""))
+        date = shift["date"]
+        staff = staff_info.get(name)
+
+        if not staff or staff.get("type") == "社員":
+            continue
+
+        start = datetime.strptime(shift["start"], "%H:%M")
+        end = datetime.strptime(shift["end"], "%H:%M")
+        duration = (end - start).seconds / 3600  # 時間（float）
+
+        # 拘束時間に応じた休憩時間
+        if duration >= 8:
+            break_time = 1
+        elif duration >= 6:
+            break_time = 0.5
+        else:
+            break_time = 0
+        work_time = max(duration - break_time, 0)
+
+        cost_by_date[date] = cost_by_date.get(date, 0) + round(work_time * hourly_wage)
+
+    return cost_by_date

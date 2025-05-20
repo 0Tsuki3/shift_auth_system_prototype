@@ -74,12 +74,20 @@
       text-align: center;
       margin-top: 4px;
       font-size: 12px;
+      padding-left: 16px;
     }
     .note-label {
       font-size: 10px;
       text-align: center;
       margin-bottom: 4px;
       color: gray;
+    }
+    .cost-label {
+      text-align: center;
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+      padding-left: 16px;
     }
   </style>
 </head>
@@ -109,7 +117,21 @@
             {% endfor %}
           </div>
         </div>
-        <div class="bar-label">{{ day.date[-2:] }}日</div>
+
+        <!-- 日付ラベル -->
+        <div class="bar-label">
+          {% for d in date_labels %}
+            {% if d.date == day.date %}
+              {{ d.label }}
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        <!-- 人件費ラベル -->
+        <div class="cost-label">
+          {{ daily_cost.get(day.date, 0) }}円
+        </div>
+
       </div>
     {% endfor %}
   </div>

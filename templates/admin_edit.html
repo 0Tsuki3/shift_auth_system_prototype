@@ -43,7 +43,28 @@
       background-color: #f9f9f9;
       z-index: 11;
     }
-    .edit input { width: 60px; }
+    .edit-cell {
+      vertical-align: top;
+      transition: all 0.2s ease;
+      width: 170px;
+      min-width: 170px;
+      max-width: 170px;
+      box-sizing: border-box;
+    }
+    .view-mode {
+      min-height: auto;
+    }
+    .edit {
+      min-height: 60px;
+    }
+    .edit input {
+      width: 50px;
+      height: 20px;
+      margin: 2px 0;
+    }
+    .shift-block {
+      margin-bottom: 2px;
+    }
     .edit-cell.error {
       background-color: #ffcccc !important;
       border: 2px solid red;
@@ -70,11 +91,11 @@
       cursor: pointer;
     }
     .delete-btn {
-    margin-left: 4px;
-    color: red;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
+      margin-left: 4px;
+      color: red;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -85,34 +106,30 @@
     <a href="{{ url_for('admin.admin_home') }}" style="margin-left: 20px;">🏠 ホームに戻る</a>
     <a href="{{ url_for('admin.admin_edit') }}" style="margin-left: 10px;">📅 月選択に戻る</a>
   </div>
-  
-
   <div class="table-wrapper">
     <form id="shiftForm" method="post">
       <table>
         <thead>
-  <tr>
-    <th class="sticky-left sticky-top" rowspan="3">名前</th>
-    {% for d in date_labels %}
-      <th class="sticky-top">{{ d.label }}</th>
-    {% endfor %}
-
-    <th class="sticky-top" rowspan="3">月間合計</th>
-  </tr>
-  <tr>
-    {% for date in dates %}
-      <td class="sticky-top-second">
-        <input type="text" name="note_{{ date }}" value="{{ notes.get(date, '') }}" style="width: 80px; font-size: 12px;">
-      </td>
-    {% endfor %}
-  </tr>
-  <tr>
-    {% for _ in dates %}
-      <td class="sticky-top-second">労働時間</td>
-    {% endfor %}
-  </tr>
+          <tr>
+            <th class="sticky-left sticky-top" rowspan="3">名前</th>
+            {% for d in date_labels %}
+              <th class="sticky-top">{{ d.label }}</th>
+            {% endfor %}
+            <th class="sticky-top" rowspan="3">月間合計</th>
+          </tr>
+          <tr>
+            {% for date in dates %}
+              <td class="sticky-top-second">
+                <input type="text" name="note_{{ date }}" value="{{ notes.get(date, '') }}" style="width: 80px; font-size: 12px;">
+              </td>
+            {% endfor %}
+          </tr>
+          <tr>
+            {% for _ in dates %}
+              <td class="sticky-top-second">労働時間</td>
+            {% endfor %}
+          </tr>
         </thead>
-
         <tbody>
           {% for staff in staff_list %}
             {% if loop.index0 == 0 or staff.group != staff_list[loop.index0 - 1].group %}
@@ -142,7 +159,6 @@
                       <span class="delete-btn" onclick="deleteShift(this)">×</span>
                     </div>
                   {% endfor %}
-
                   <div class="add-btn" onclick="addShift('{{ staff.name|replace(' ', '_') }}', '{{ date }}')">＋シフト追加</div>
                 </div>
               </td>
@@ -171,21 +187,30 @@
       </table>
     </form>
   </div>
-
   <script>
     function toggleEditMode() {
+      const wrapper = document.querySelector('.table-wrapper');
+      const scrollTop = wrapper.scrollTop;
+      const scrollLeft = wrapper.scrollLeft;
+      const cellWidth = 100;
+      const rowHeight = 40;
+
+      const centerColIndex = Math.round((scrollLeft + wrapper.clientWidth / 2) / cellWidth);
+      const centerRowIndex = Math.round((scrollTop + wrapper.clientHeight / 2) / rowHeight);
+
       const allCells = document.querySelectorAll('.edit-cell');
       allCells.forEach(cell => {
         const view = cell.querySelector('.view-mode');
         const edit = cell.querySelector('.edit');
-        if (view.style.display === "none") {
-          view.style.display = "block";
-          edit.style.display = "none";
-        } else {
-          view.style.display = "none";
-          edit.style.display = "block";
-        }
+        const isEditMode = view.style.display === "none";
+        view.style.display = isEditMode ? "block" : "none";
+        edit.style.display = isEditMode ? "none" : "block";
       });
+
+      setTimeout(() => {
+        wrapper.scrollLeft = Math.max(0, centerColIndex * cellWidth - wrapper.clientWidth / 2);
+        wrapper.scrollTop = Math.max(0, centerRowIndex * rowHeight - wrapper.clientHeight / 2);
+      }, 0);
     }
 
     function addShift(name, date) {
@@ -198,12 +223,11 @@
         }
       }
     }
+
     function deleteShift(btn) {
       const inputs = btn.parentElement.querySelectorAll('input');
       inputs.forEach(input => input.value = '');
     }
-
-
   </script>
 </body>
 </html>
