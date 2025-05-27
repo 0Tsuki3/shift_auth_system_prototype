@@ -18,6 +18,7 @@ from utils.date_utils import generate_date_label_list
 
 
 
+
 from icalendar import Calendar, Event
 from flask import make_response
 from pytz import timezone
@@ -297,3 +298,120 @@ def download_ics(account):
     response.headers.set('Content-Disposition', f'attachment; filename=shift_{month}.ics')
     response.headers.set('Content-Type', 'text/calendar; charset=utf-8')
     return response
+
+
+
+
+@staff_blueprint.route("/home/<account>")
+def staff_home(account):
+    if "account" not in session or session["account"] != account:
+        return redirect(url_for("auth.login"))
+    return render_template("staff_home.html", account=account, name=session["name"])
+
+@staff_blueprint.route("/history_menu/<account>")
+def staff_history_menu(account):
+    if "account" not in session or session["account"] != account:
+        return redirect(url_for("auth.login"))
+    return render_template("history_menu.html", account=account)
+
+
+
+from utils.staff_utils import load_staff, sort_staff_list, build_shift_dict
+from utils.csv_utils import create_monthly_csv_templates, load_shifts
+from utils.date_utils import generate_short_date_labels
+
+
+@staff_blueprint.route("/view_all/<account>")
+def view_all_readonly(account):
+    if "account" not in session or session["account"] != account:
+        return redirect(url_for("auth.login"))
+
+
+    month = request.args.get("month", datetime.today().strftime("%Y-%m"))
+    create_monthly_csv_templates(month)
+
+    # 管理者と同じスタッフの並び順・分類
+    staff_list = sort_staff_list(load_staff())
+    date_map = generate_short_date_labels(month)
+    dates = [d["date"] for d in date_map]
+
+    # シフトデータを staff["name"] → date → {index: {start, end}} で構築
+    shifts = build_shift_dict(load_shifts(month), staff_list)
+
+    all_staff = []
+    for staff in staff_list:
+        shift_dict = {}
+        for date in dates:
+            entries = []
+            if staff["name"] in shifts and date in shifts[staff["name"]]:
+                for start, end in shifts[staff["name"]][date].values():
+                    entries.append({"start": start, "end": end})
+            if entries:
+                shift_dict[date] = entries
+        all_staff.append({
+            "name": staff["name"],
+            "shifts": shift_dict
+        })
+
+    return render_template("view_all_readonly.html",
+                           month=month,
+                           date_map=date_map,
+                           all_staff=all_staff,
+                           account=account)
+@staff_blueprint.route("/graph/<account>")
+def staff_graph(account):
+    if "account" not in session or session["account"] != account:
+        return redirect(url_for("auth.login"))
+    from collections import defaultdict  # ←これを追加！
+    from utils.graph_utils import generate_compact_bar_data, generate_time_slots
+    from utils.date_utils import generate_short_date_labels
+    from utils.csv_utils import load_notes, get_path, load_csv
+
+    month = request.args.get("month", datetime.today().strftime("%Y-%m"))
+    graph_data = generate_compact_bar_data(month)
+    date_labels = generate_short_date_labels(month)
+    notes = load_notes(month)
+    time_slots = generate_time_slots()
+
+    # 🔽 名前マッピングを time_slot 単位で構築
+    shift_path = get_path("shift", month)
+    shift_list = load_csv(shift_path)
+    slot_name_map = defaultdict(list)
+
+    for s in shift_list:
+        name = s.get("name") or f'{s.get("last_name", "")} {s.get("first_name", "")}'
+        start_dt = datetime.strptime(s["start"], "%H:%M")
+        end_dt = datetime.strptime(s["end"], "%H:%M")
+        t = start_dt
+        while t < end_dt:
+            slot = t.strftime("%H:%M")
+            slot_name_map[(s["date"], slot)].append(name)
+            t += timedelta(minutes=30)
+
+    # 🔽 segment["members"] を補完
+    for day in graph_data:
+        for segment in day["segments"]:
+            filled_names = []
+            # slot単位で名前を集める（セグメント内すべての時間を対象に）
+            t = datetime.strptime(segment["start"], "%H:%M")
+            end_dt = datetime.strptime(segment["end"], "%H:%M")
+            seen = set()
+            while t < end_dt:
+                slot = t.strftime("%H:%M")
+                names = slot_name_map.get((day["date"], slot), [])
+                for name in names:
+                    if name not in seen:
+                        filled_names.append(name)
+                        seen.add(name)
+                t += timedelta(minutes=30)
+
+            segment["members"] = filled_names
+            segment["count"] = len(filled_names)
+            segment["height"] = (end_dt - datetime.strptime(segment["start"], "%H:%M")).seconds // 6
+
+    return render_template("vertical_graph_staff.html",
+                           month=month,
+                           graph_data=graph_data,
+                           date_labels=date_labels,
+                           notes=notes,
+                           account=account)

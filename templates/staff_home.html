@@ -1,14 +1,54 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>スタッフホーム</title>
+    <meta charset="UTF-8">
+    <title>スタッフホーム</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            margin-top: 30px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin: 8px 0;
+        }
+        a {
+            text-decoration: none;
+            color: #2a5db0;
+        }
+    </style>
 </head>
 <body>
-  <h1>{{ name }}さん、ようこそ！</h1>
-  <ul>
-    <li><a href="{{ url_for('staff.submit_month_select', account=account) }}">📝 シフト希望一覧</a></li>
-    <!-- 必要になったら他の機能もここに追加 -->
-  </ul>
+    <h1>スタッフメニュー</h1>
+
+    <h2>2025年6月のシフト希望</h2>
+    <ul>
+        <li><a href="/submit_shift/{{ account }}?month=2025-06">シフト希望を提出する</a></li>
+    </ul>
+
+    <h2>2025年5月のシフト（閲覧のみ）</h2>
+    <ul>
+        <li><a href="/view_shift/{{ account }}?month=2025-05">自分の確定シフト</a></li>
+        <li><a href="/view_all/{{ account }}?month=2025-05">全体のシフト表</a></li>
+        <li><a href="/graph/{{ account }}?month=2025-05">シフト人数グラフ</a></li>
+    </ul>
+
+    <h2>2025年6月のシフト（閲覧のみ）</h2>
+    <ul>
+        <li><a href="/view_shift/{{ account }}?month=2025-06">自分の確定シフト</a></li>
+        <li><a href="/view_all/{{ account }}?month=2025-06">全体のシフト表</a></li>
+        <li><a href="/graph/{{ account }}?month=2025-06">シフト人数グラフ</a></li>
+    </ul>
+
+    <h2>過去の履歴</h2>
+    <ul>
+        <li><a href="/history_menu/{{ account }}">履歴一覧ページへ</a></li>
+    </ul>
 </body>
 </html>

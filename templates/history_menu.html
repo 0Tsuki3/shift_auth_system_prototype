@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>履歴一覧</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        a {
+            text-decoration: none;
+            color: #2a5db0;
+        }
+    </style>
+</head>
+<body>
+    <h1>履歴一覧</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>年月</th>
+                <th>自分の確定シフト</th>
+                <th>シフト希望</th>
+                <th>全体のシフト表</th>
+                <th>人数グラフ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>2025年6月</td>
+                <td><a href="/view_shift/{{ account }}?month=2025-06">自分の確定シフト</a></td>
+                <td><a href="/staff/history?month=2025-06">シフト希望</a></td>
+                <td><a href="/view?month=2025-06">全体のシフト表</a></td>
+                <td><a href="/graph/vertical?month=2025-06">人数グラフ</a></td>
+            </tr>
+            <tr>
+                <td>2025年5月</td>
+                <td><a href="/view_shift/{{ account }}?month=2025-05">自分の確定シフト</a></td>
+                <td><a href="/staff/history?month=2025-05">シフト希望</a></td>
+                <td><a href="/view?month=2025-05">全体のシフト表</a></td>
+                <td><a href="/graph/vertical?month=2025-05">人数グラフ</a></td>
+            </tr>
+            <tr>
+                <td>2025年4月</td>
+                <td><a href="/view_shift/{{ account }}?month=2025-04">自分の確定シフト</a></td>
+                <td><a href="/staff/history?month=2025-04">シフト希望</a></td>
+                <td><a href="/view?month=2025-04">全体のシフト表</a></td>
+                <td><a href="/graph/vertical?month=2025-04">人数グラフ</a></td>
+            </tr>
+           
+        </tbody>
+    </table>
+</body>
+</html>

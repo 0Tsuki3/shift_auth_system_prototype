@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>管理者用シフト人数グラフ（縦型）</title>
+  <title>シフト人数グラフ（閲覧専用）</title>
   <style>
     body { font-family: sans-serif; margin: 20px; }
     .graph-container {
@@ -82,21 +82,11 @@
       margin-bottom: 4px;
       color: gray;
     }
-    .cost-label {
-      text-align: center;
-      font-size: 11px;
-      color: #666;
-      margin-top: 2px;
-      padding-left: 16px;
-      z-index: 1;
-      background: white;
-    }
-
   </style>
 </head>
 <body>
-  <h2>{{ month }} 管理者用シフト人数グラフ</h2>
-  <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
+  <h2>{{ month }} シフト人数グラフ（閲覧専用）</h2>
+  <a href="/account/{{ account }}">← ホームに戻る</a>
   <div class="graph-container">
     {% for day in graph_data %}
       <div>
@@ -129,16 +119,6 @@
             {% endif %}
           {% endfor %}
         </div>
-
-        <!-- 人件費ラベル -->
-        <div class="cost-label">
-          {{ daily_cost.get(day.date, 0) }}円
-        </div>
-        <!-- 人時数ラベル -->
-        <div class="cost-label">
-          {{ daily_hours.get(day.date, 0) }}時間
-        </div>
-
       </div>
     {% endfor %}
   </div>

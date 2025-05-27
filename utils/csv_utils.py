@@ -2,6 +2,7 @@
 import os, csv
 from pathlib import Path
 from datetime import datetime, timedelta
+from collections import defaultdict
 
 
 def get_path(base, month): return f"data/{base}/{base}_{month}.csv"
@@ -113,3 +114,21 @@ def append_staff(row):
         if write_header:
             writer.writeheader()
         writer.writerow(row)
+
+
+
+def build_shift_dict(shift_list, staff_list):
+    """
+    shift.csv の flatなリストを staff_name → date → index → {start, end} に変換
+    """
+    shifts = defaultdict(lambda: defaultdict(dict))
+
+    for row in shift_list:
+        name = row["last_name"] + " " + row["first_name"]
+        date = row["date"]
+        index = int(row.get("index", 0))
+        start = row["start"]
+        end = row["end"]
+        shifts[name][date][index] = {"start": start, "end": end}
+
+    return shifts

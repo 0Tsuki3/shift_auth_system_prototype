@@ -13,7 +13,7 @@ from utils.csv_utils import (
     save_imported_requests, create_monthly_csv_templates
 )
 from utils.date_utils import generate_date_label_list, generate_short_date_labels
-from utils.graph_utils import calculate_daily_labor_cost
+from utils.graph_utils import calculate_daily_labor_cost, calculate_daily_work_hours  # ← 追加
 from flask import send_file
 
 
@@ -374,7 +374,7 @@ def vertical_graph_admin():
     notes = load_notes(month)  # ← 🔥ここ追加
     date_labels = generate_short_date_labels(month)
     daily_cost = calculate_daily_labor_cost(shift_list, staff_list)
-
+    daily_hours = calculate_daily_work_hours(shift_list, staff_list)  # ← 追加
 
 
     return render_template("graph_vertical_admin.html",
@@ -383,7 +383,8 @@ def vertical_graph_admin():
                            time_slots=time_slots,
                            notes=notes,
                            date_labels=date_labels,
-                           daily_cost=daily_cost
+                           daily_cost=daily_cost,
+                           daily_hours=daily_hours 
                            )  # ← 🔥これも忘れずに
 
 

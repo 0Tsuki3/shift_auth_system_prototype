@@ -67,6 +67,8 @@
 <body>
   <div class="header">
     <div>{{ name }}さんの確定シフト（{{ month }}）</div>
+    <!-- タイトルのすぐ下などに追加 -->
+    <a href="/account/{{ account }}">← ホームに戻る</a>
     <div class="summary">
       合計勤務時間: {{ total_hours }}h<br>
       給与概算: {{ estimated_pay }}円
