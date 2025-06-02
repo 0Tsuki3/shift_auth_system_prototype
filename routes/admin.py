@@ -4,7 +4,7 @@ import csv
 import os
 import zipfile
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
 from utils.csv_utils import *
 from utils.staff_utils import load_staff, sort_staff_list, calculate_shift_hours , build_shift_dict
@@ -200,9 +200,13 @@ def import_confirm():
     if session.get("role") != "admin":
         return redirect(url_for("auth.login"))
 
-    today = datetime.today()
-    next_month_date = (today.replace(day=28) + timedelta(days=4)).replace(day=1)
-    month = next_month_date.strftime("%Y-%m")
+    # ▼ URLの?month=2025-06などから取得（なければ来月）
+    month = request.args.get("month")
+    if not month:
+        today = datetime.today()
+        next_month_date = (today.replace(day=28) + timedelta(days=4)).replace(day=1)
+        month = next_month_date.strftime("%Y-%m")
+
     create_monthly_csv_templates(month)
 
     request_data = load_shift_requests(month)
@@ -240,7 +244,6 @@ def import_confirm():
         return redirect(url_for("admin.admin_edit", month=month))
 
     # ▼ 全アカウント名取得（staff.csvベース）
-    # これに差し替える（毎回 staff.csv を読み直す）
     all_accounts = {
         s["account"]: f'{s["last_name"]} {s["first_name"]}'
         for s in sort_staff_list(load_staff())
@@ -251,7 +254,7 @@ def import_confirm():
     for row in request_data:
         acc = row["account"]
         if acc in imported_accounts:
-            continue  # すでにインポート済はスキップ
+            continue
         submitted_at = row.get("submitted_at", "").strip()
         if submitted_at:
             if acc not in submitted_by or submitted_by[acc] < submitted_at:
@@ -409,3 +412,12 @@ def download_all_csv():
         as_attachment=True
     )
 
+@admin_blueprint.route("/admin/import_select")
+def import_select():
+    today = datetime.today()
+    month_list = [
+        (today - timedelta(days=30)).strftime("%Y-%m"),
+        today.strftime("%Y-%m"),
+        (today + timedelta(days=30)).strftime("%Y-%m"),
+    ]
+    return render_template("import_select_month.html", month_list=month_list)

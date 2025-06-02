@@ -1,0 +1,17 @@
+<!-- templates/import_select_month.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>シフト希望インポート - 月選択</title>
+</head>
+<body>
+  <h2>シフト希望のインポート（月選択）</h2>
+  <ul>
+    {% for m in month_list %}
+      <li><a href="{{ url_for('admin.import_confirm', month=m) }}">{{ m }} の希望をインポート</a></li>
+    {% endfor %}
+  </ul>
+  <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
+</body>
+</html>

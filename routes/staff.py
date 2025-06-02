@@ -358,60 +358,29 @@ def view_all_readonly(account):
                            date_map=date_map,
                            all_staff=all_staff,
                            account=account)
+# routes/staff.py（抜粋）
+
 @staff_blueprint.route("/graph/<account>")
 def staff_graph(account):
     if "account" not in session or session["account"] != account:
         return redirect(url_for("auth.login"))
-    from collections import defaultdict  # ←これを追加！
-    from utils.graph_utils import generate_compact_bar_data, generate_time_slots
+
+    from utils.graph_utils import generate_vertical_graph_data_admin
+    from utils.csv_utils import load_notes, load_csv, get_path
     from utils.date_utils import generate_short_date_labels
-    from utils.csv_utils import load_notes, get_path, load_csv
 
     month = request.args.get("month", datetime.today().strftime("%Y-%m"))
-    graph_data = generate_compact_bar_data(month)
-    date_labels = generate_short_date_labels(month)
+    graph_data, time_slots = generate_vertical_graph_data_admin(month)
     notes = load_notes(month)
-    time_slots = generate_time_slots()
+    date_labels = generate_short_date_labels(month)
 
-    # 🔽 名前マッピングを time_slot 単位で構築
-    shift_path = get_path("shift", month)
-    shift_list = load_csv(shift_path)
-    slot_name_map = defaultdict(list)
-
-    for s in shift_list:
-        name = s.get("name") or f'{s.get("last_name", "")} {s.get("first_name", "")}'
-        start_dt = datetime.strptime(s["start"], "%H:%M")
-        end_dt = datetime.strptime(s["end"], "%H:%M")
-        t = start_dt
-        while t < end_dt:
-            slot = t.strftime("%H:%M")
-            slot_name_map[(s["date"], slot)].append(name)
-            t += timedelta(minutes=30)
-
-    # 🔽 segment["members"] を補完
-    for day in graph_data:
-        for segment in day["segments"]:
-            filled_names = []
-            # slot単位で名前を集める（セグメント内すべての時間を対象に）
-            t = datetime.strptime(segment["start"], "%H:%M")
-            end_dt = datetime.strptime(segment["end"], "%H:%M")
-            seen = set()
-            while t < end_dt:
-                slot = t.strftime("%H:%M")
-                names = slot_name_map.get((day["date"], slot), [])
-                for name in names:
-                    if name not in seen:
-                        filled_names.append(name)
-                        seen.add(name)
-                t += timedelta(minutes=30)
-
-            segment["members"] = filled_names
-            segment["count"] = len(filled_names)
-            segment["height"] = (end_dt - datetime.strptime(segment["start"], "%H:%M")).seconds // 6
-
-    return render_template("vertical_graph_staff.html",
-                           month=month,
-                           graph_data=graph_data,
-                           date_labels=date_labels,
-                           notes=notes,
-                           account=account)
+    return render_template(
+        "graph_vertical_admin.html",
+        graph_data=graph_data,
+        month=month,
+        notes=notes,
+        date_labels=date_labels,
+        daily_cost={},  # スタッフには人件費表示なし
+        daily_hours={},  # スタッフには人時数表示なし
+        account=account
+    )

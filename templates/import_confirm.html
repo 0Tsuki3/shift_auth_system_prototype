@@ -16,6 +16,13 @@
   {% if submitted_list %}
     <form method="POST" action="{{ url_for('admin.import_shift') }}">
       <input type="hidden" name="month" value="{{ next_month }}">
+
+      <!-- 🔽 全選択・全解除ボタン -->
+      <div style="margin-bottom: 8px;">
+        <button type="button" onclick="checkAll(true)">✔️ 全選択</button>
+        <button type="button" onclick="checkAll(false)">❌ 全解除</button>
+      </div>
+
       <table>
         <thead>
           <tr>
@@ -41,6 +48,13 @@
       <br>
       <button type="submit">✅ 選択したスタッフのみインポート</button>
     </form>
+    <!-- 🔽 チェック切り替え用スクリプト -->
+    <script>
+      function checkAll(state) {
+        const checkboxes = document.querySelectorAll('input[name="accounts"]');
+        checkboxes.forEach(cb => cb.checked = state);
+      }
+    </script>
   {% else %}
     <p class="warning">翌月の提出済みシフト希望がありません。</p>
   {% endif %}
