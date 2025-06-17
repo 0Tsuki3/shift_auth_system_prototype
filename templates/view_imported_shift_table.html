@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>全体シフト表（閲覧専用）</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px 8px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #f0f0f0;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .name-col {
+            position: sticky;
+            left: 0;
+            background-color: #fff;
+            z-index: 1;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ month }} インポートしたシフト希望表（閲覧専用）</h1>
+    <!-- タイトルのすぐ下などに追加 -->
+    <a href="/admin/home">← ホームに戻る</a>
+    <table>
+        <thead>
+            <tr>
+                <th class="name-col">名前</th>
+                {% for d in date_map %}
+                    <th>{{ d.label }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for staff in all_staff %}
+                <tr>
+                    <td class="name-col">{{ staff.name }}</td>
+                    {% for d in date_map %}
+                        <td>
+                            {% if staff.shifts.get(d.date) %}
+                                {% for row in staff.shifts[d.date] %}
+                                    {{ row.start }} - {{ row.end }}<br>
+                                {% endfor %}
+                            {% else %}
+                                ー
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

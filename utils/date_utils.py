@@ -91,3 +91,20 @@ def generate_short_date_labels(month_str):
         results.append({'date': date_str, 'label': label})
 
     return results
+
+
+def generate_date_list(month_str):
+    """
+    例: '2025-06' → [{'date': '2025-06-01', 'weekday': '日'}, ...]
+    """
+    weekdays = ['月', '火', '水', '木', '金', '土', '日']
+    year, month = map(int, month_str.split('-'))
+    results = []
+
+    for day in range(1, calendar.monthrange(year, month)[1] + 1):
+        date = datetime(year, month, day)
+        date_str = date.strftime('%Y-%m-%d')
+        weekday_str = weekdays[date.weekday()]
+        results.append({'date': date_str, 'weekday': weekday_str})
+
+    return results

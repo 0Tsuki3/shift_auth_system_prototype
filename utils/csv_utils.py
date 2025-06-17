@@ -132,3 +132,14 @@ def build_shift_dict(shift_list, staff_list):
         shifts[name][date][index] = {"start": start, "end": end}
 
     return shifts
+
+
+def load_imported_requests(month):
+    path = f"data/imported_requests/imported_requests_{month}.csv"
+    imported_requests = []
+    if os.path.exists(path):
+        with open(path, newline='', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                imported_requests.append(row)
+    return imported_requests

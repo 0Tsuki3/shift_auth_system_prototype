@@ -123,12 +123,6 @@ def submit_shift(account):
 
 # routes/staff.py
 
-@staff_blueprint.route("/account/<account>")
-def account_page(account):
-    if "account" not in session or session["account"] != account:
-        return redirect(url_for("auth.login"))
-    return render_template("staff_home.html", name=session["name"], account=account)
-
 
 @staff_blueprint.route("/submit_shift_select/<account>")
 def submit_month_select(account):
@@ -301,19 +295,36 @@ def download_ics(account):
 
 
 
+from datetime import datetime
+from flask import Blueprint, render_template, session, redirect, url_for
 
-@staff_blueprint.route("/home/<account>")
+@staff_blueprint.route("/account/<account>")
 def staff_home(account):
     if "account" not in session or session["account"] != account:
         return redirect(url_for("auth.login"))
-    return render_template("staff_home.html", account=account, name=session["name"])
+
+    # 今日の日付から this_month, next_month を作成
+    today = datetime.today()
+    this_month = today.strftime("%Y-%m")
+    if today.month == 12:
+        next_month = f"{today.year + 1}-01"
+    else:
+        next_month = f"{today.year}-{today.month + 1:02d}"
+
+    return render_template(
+        "staff_home.html",
+        account=account,
+        name=session["name"],
+        this_month=this_month,
+        next_month=next_month
+    )
+
 
 @staff_blueprint.route("/history_menu/<account>")
 def staff_history_menu(account):
     if "account" not in session or session["account"] != account:
         return redirect(url_for("auth.login"))
     return render_template("history_menu.html", account=account)
-
 
 
 from utils.staff_utils import load_staff, sort_staff_list, build_shift_dict

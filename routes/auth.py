@@ -31,8 +31,7 @@ def login():
             if session["role"] == "admin":
                 return redirect(url_for("admin.admin_home"))
             else:
-                return redirect(url_for("staff.account_page", account=account))
-
+                return redirect(url_for("staff.staff_home", account=account))
         else:
             error = "アカウント名またはパスワードが違います"
 

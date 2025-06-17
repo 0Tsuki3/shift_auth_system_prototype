@@ -421,3 +421,49 @@ def import_select():
         (today + timedelta(days=30)).strftime("%Y-%m"),
     ]
     return render_template("import_select_month.html", month_list=month_list)
+
+from utils.csv_utils import load_imported_requests
+
+
+@admin_blueprint.route("/admin/view_imported_shift")
+def view_imported_shift():
+    
+    month = request.args.get("month", datetime.today().strftime("%Y-%m"))
+    create_monthly_csv_templates(month)
+
+    staff_list = sort_staff_list(load_staff())
+    date_map = generate_short_date_labels(month)
+    dates = [d["date"] for d in date_map]
+
+    imported_shifts_raw = load_imported_requests(month)  # imported_requests_YYYY-MM.csvを読む関数
+
+    # name → date → index → {start, end}
+    imported_shifts = {}
+    for s in imported_shifts_raw:
+        name = s["name"]
+        date = s["date"]
+        index = int(s.get("index", 0))
+        start = s["start"]
+        end = s["end"]
+        imported_shifts.setdefault(name, {}).setdefault(date, {})[index] = (start, end)
+
+    all_staff = []
+    for staff in staff_list:
+        name = staff["name"]
+        shift_dict = {}
+        for date in dates:
+            entries = []
+            if name in imported_shifts and date in imported_shifts[name]:
+                for start, end in imported_shifts[name][date].values():
+                    entries.append({"start": start, "end": end})
+            if entries:
+                shift_dict[date] = entries
+        all_staff.append({
+            "name": name,
+            "shifts": shift_dict
+        })
+
+    return render_template("view_imported_shift_table.html",
+                           month=month,
+                           date_map=date_map,
+                           all_staff=all_staff)
