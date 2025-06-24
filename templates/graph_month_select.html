@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>人数グラフ 月選択</title>
+</head>
+<body>
+  <h2>人数グラフ（管理者用）</h2>
+
+  <h3>月を選んで表示</h3>
+  <form method="GET" action="{{ url_for('admin.vertical_graph_admin') }}">
+    <input type="month" name="month" value="{{ this_month }}" required>
+    <button type="submit">表示</button>
+  </form>
+
+  <h3>ショートカット</h3>
+  <ul>
+    <li><a href="{{ url_for('admin.vertical_graph_admin', month=prev_month) }}">← 先月（{{ prev_month }}）</a></li>
+    <li><a href="{{ url_for('admin.vertical_graph_admin', month=this_month) }}">今月（{{ this_month }}）</a></li>
+    <li><a href="{{ url_for('admin.vertical_graph_admin', month=next_month) }}">来月（{{ next_month }}）→</a></li>
+  </ul>
+
+  <p><a href="{{ url_for('admin.admin_home') }}">← 管理者ホームに戻る</a></p>
+</body>
+</html>

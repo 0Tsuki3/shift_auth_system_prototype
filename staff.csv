@@ -1,7 +1,6 @@
 account,last_name,first_name,position,experience,type,shift_pref
 kasahara,笠原,寧弥香,キッチン,ベテラン,バイト,朝
 nakazawa,中澤,美優貴,トップ,ベテラン,バイト,朝
-arimura,有村,瑠花,トップ,新人,バイト,複数
 simizu,清水,良友,両方,ベテラン,バイト,昼
 takeuti,竹内,更,トップ,新人,バイト,昼
 teduka,手塚,彩巴,トップ,新人,バイト,複数
@@ -13,7 +12,6 @@ isibasi,石橋,龍之介,両方,ベテラン,バイト,夜
 kasai,葛西,店長,両方,ベテラン,社員,複数
 takatama,高玉,中也,両方,ベテラン,社員,複数
 tokunaga,徳永,副店長,両方,ベテラン,社員,複数
-komori,小森,主任,両方,ベテラン,社員,複数
 kasiwazaki,柏崎,料理改革担当大臣,キッチン,ベテラン,社員,複数
 nakamura,中村,元,トップ,ベテラン,バイト,複数
 morinaga,盛永,飛輝,トップ,新人,バイト,昼

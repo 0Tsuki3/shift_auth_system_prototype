@@ -367,7 +367,7 @@ from utils.csv_utils import load_notes, save_notes
 
 @admin_blueprint.route("/graph/vertical_admin")
 def vertical_graph_admin():
-    month = "2025-06"
+    month = request.args.get("month", datetime.today().strftime("%Y-%m"))  # ← GETパラメータから取得
     create_monthly_csv_templates(month)
 
 
@@ -467,3 +467,19 @@ def view_imported_shift():
                            month=month,
                            date_map=date_map,
                            all_staff=all_staff)
+
+
+
+from dateutil.relativedelta import relativedelta  # 必要なら pip install python-dateutil
+
+@admin_blueprint.route("/admin/graph_select")
+def graph_month_select():
+    today = datetime.today()
+    this_month = today.strftime("%Y-%m")
+    prev_month = (today - relativedelta(months=1)).strftime("%Y-%m")
+    next_month = (today + relativedelta(months=1)).strftime("%Y-%m")
+    
+    return render_template("graph_month_select.html",
+                           this_month=this_month,
+                           prev_month=prev_month,
+                           next_month=next_month)
