@@ -7,3 +7,5 @@ icalendar
 gunicorn
 pytz
 python-dateutil
+pandas
+markdown

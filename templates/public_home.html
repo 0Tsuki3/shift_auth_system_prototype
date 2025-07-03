@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>カフェ 業務情報ページ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+</head>
+<body>
+    <h1>カフェ 業務情報ページ</h1>
+
+    <h2>メニュー</h2>
+    <ul>
+        <li><a href="{{ url_for('manual.view_manual') }}">📖 マニュアル閲覧</a></li>
+        <li><a href="{{ url_for('stock.stock_home') }}">📦 ストック管理</a></li>
+        <li><a href="{{ url_for('shift_public.view_shift_public') }}">📅 シフト表（閲覧専用）</a></li>
+
+    </ul>
+
+    <h2>管理者・スタッフの方はこちら</h2>
+    <ul>
+        <li><a href="{{ url_for('auth.login') }}">🔑 ログイン</a></li>
+    </ul>
+</body>
+</html>

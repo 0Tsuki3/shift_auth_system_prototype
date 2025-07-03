@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>メモ管理</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2rem;
+    }
+    h1 {
+      margin-bottom: 1rem;
+    }
+    .category-select {
+      margin-bottom: 1rem;
+    }
+    .memo-form input, .memo-form select {
+      padding: 0.4rem;
+      font-size: 1rem;
+    }
+    .memo-form button {
+      padding: 0.4rem 1rem;
+      margin-left: 0.5rem;
+    }
+    .memo-item {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      background: #f9f9f9;
+      border-left: 5px solid #007acc;
+    }
+    .memo-item small {
+      color: #666;
+    }
+    .memo-item form {
+      display: inline;
+    }
+  </style>
+</head>
+<body>
+  <h1>メモ管理</h1>
+
+  <!-- カテゴリ選択 -->
+  <div class="category-select">
+    <form method="get" action="{{ url_for('memo.view_memo') }}">
+      <label>カテゴリ:
+        <select name="category" onchange="this.form.submit()">
+          {% for c in categories %}
+            <option value="{{ c }}" {% if c == selected %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </form>
+  </div>
+
+  <!-- メモ追加 -->
+  <form class="memo-form" method="post" action="{{ url_for('memo.add_memo') }}">
+    <input type="hidden" name="category" value="{{ selected }}">
+    <input type="text" name="text" placeholder="メモを入力..." required>
+    <button type="submit">追加</button>
+  </form>
+
+  <!-- メモ一覧 -->
+  <div class="memo-list">
+    {% for memo in memos %}
+      <div class="memo-item">
+        {{ memo.text }}
+        <small>（{{ memo.timestamp }}）</small>
+        <form method="get" action="{{ url_for('memo.delete_memo', memo_id=memo.id) }}" style="display:inline;">
+          <button type="submit">削除</button>
+        </form>
+      </div>
+    {% endfor %}
+    {% if memos|length == 0 %}
+      <p>このカテゴリにはまだメモがありません。</p>
+    {% endif %}
+  </div>
+
+  <!-- 戻るリンク -->
+  <div style="margin-top: 2rem;">
+    <a href="{{ url_for('manual.view_manual') }}">← マニュアル一覧に戻る</a>
+  </div>
+</body>
+</html>

@@ -37,7 +37,14 @@
 <body>
     <h1>{{ month }} の全体シフト表（閲覧専用）</h1>
     <!-- タイトルのすぐ下などに追加 -->
-    <a href="/account/{{ account }}">← ホームに戻る</a>
+
+    {% if account %}
+        <a href="/account/{{ account }}">← ホームに戻る</a>
+    {% else %}
+        <a href="/">← ホームに戻る</a>
+    {% endif %}
+
+    
     <table>
         <thead>
             <tr>

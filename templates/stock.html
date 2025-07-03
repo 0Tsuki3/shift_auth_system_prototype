@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>在庫管理</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .item-box {
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .add-box {
+            background-color: #f5f5f5;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .add-box:hover {
+            background-color: #e0e0e0;
+        }
+
+        button {
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            border-radius: 50%;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            border-radius: 8px;
+            width: auto;
+            height: auto;
+            padding: 5px 10px;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .quantity {
+            font-size: 28px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .submit-btn {
+            margin-top: 20px;
+            padding: 10px 30px;
+            font-size: 16px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            min-width: 120px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .submit-btn:hover {
+            background-color: #0b7dda;
+        }
+
+        #addForm {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #addForm input {
+            margin: 5px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>在庫管理</h1>
+
+    {% if account %}
+        <a href="/account/{{ account }}">← ホームに戻る</a>
+    {% else %}
+        <a href="/">← ホームに戻る</a>
+    {% endif %}
+
+
+    <form method="POST">
+        <div class="container">
+            {% for stock in stock_list %}
+            <div class="item-box">
+                <h3>{{ stock.item }}</h3>
+                <button type="button" onclick="increment('{{ stock.item }}')">＋</button><br>
+                <div class="quantity" id="qty-{{ stock.item }}">{{ stock.quantity }}</div>
+                <button type="button" onclick="decrement('{{ stock.item }}')">−</button><br>
+                <input type="hidden" name="{{ stock.item }}" id="input-{{ stock.item }}" value="{{ stock.quantity }}">
+                <button type="button" class="delete-btn" onclick="deleteItem('{{ stock.item }}')">🗑️ 削除</button>
+            </div>
+            {% endfor %}
+
+            <!-- 追加カード -->
+            <div class="item-box add-box" onclick="showAddForm()">
+                <div style="font-size: 50px;">＋</div>
+                <div>追加</div>
+            </div>
+        </div>
+
+        <!-- 追加フォーム -->
+        <div id="addForm" style="display:none;">
+            <input type="text" id="newItemName" placeholder="商品名" required>
+            <input type="number" id="newItemQty" placeholder="個数" min="0" required>
+            <button type="button" onclick="addItem()">追加</button>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="submit-btn" type="submit">決定</button>
+        </div>
+    </form>
+
+    <script>
+        function increment(item) {
+            const qtyElem = document.getElementById('qty-' + item);
+            const inputElem = document.getElementById('input-' + item);
+            let qty = parseInt(qtyElem.innerText);
+            qty += 1;
+            qtyElem.innerText = qty;
+            inputElem.value = qty;
+        }
+
+        function decrement(item) {
+            const qtyElem = document.getElementById('qty-' + item);
+            const inputElem = document.getElementById('input-' + item);
+            let qty = parseInt(qtyElem.innerText);
+            if (qty > 0) {
+                qty -= 1;
+                qtyElem.innerText = qty;
+                inputElem.value = qty;
+            }
+        }
+
+        function showAddForm() {
+            document.getElementById('addForm').style.display = 'block';
+        }
+
+        function addItem() {
+            const name = document.getElementById('newItemName').value.trim();
+            const qty = parseInt(document.getElementById('newItemQty').value);
+
+            if (name === '' || isNaN(qty)) {
+                alert('商品名と個数を入力してください');
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '';
+
+            const nameInput = document.createElement('input');
+            nameInput.type = 'hidden';
+            nameInput.name = 'new_item_name';
+            nameInput.value = name;
+            form.appendChild(nameInput);
+
+            const qtyInput = document.createElement('input');
+            qtyInput.type = 'hidden';
+            qtyInput.name = 'new_item_qty';
+            qtyInput.value = qty;
+            form.appendChild(qtyInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function deleteItem(item) {
+            const confirmDelete = confirm(`「${item}」を削除しますか？`);
+            if (!confirmDelete) {
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '';
+
+            const deleteInput = document.createElement('input');
+            deleteInput.type = 'hidden';
+            deleteInput.name = 'delete_item';
+            deleteInput.value = item;
+            form.appendChild(deleteInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+</body>
+</html>

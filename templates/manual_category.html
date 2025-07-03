@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>カテゴリ管理</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+</head>
+<body>
+    <h1>カテゴリ管理</h1>
+
+    {% if account and role == 'admin' %}
+        <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
+    {% elif account %}
+        <a href="{{ url_for('staff.staff_home', account=account) }}">← ホームに戻る</a>
+    {% else %}
+        <a href="/">← ホームに戻る</a>
+    {% endif %}
+
+    <h2>追加</h2>
+    <form method="POST">
+        <input type="text" name="new_category" placeholder="新しいカテゴリ名" required>
+        <button type="submit">追加</button>
+    </form>
+
+    <h2>削除</h2>
+    <form method="POST" action="{{ url_for('manual.confirm_delete_category') }}" onsubmit="return confirmDelete()">
+        <select name="delete_category" id="delete_category" required>
+            {% for c in categories %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">削除</button>
+    </form>
+
+    <h2>現在のカテゴリ</h2>
+    <ul>
+        {% for c in categories %}
+        <li>{{ c }}</li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        function confirmDelete() {
+            const selected = document.getElementById('delete_category').value;
+            return confirm(`本当にカテゴリ「${selected}」を削除してもよいですか？`);
+        }
+    </script>
+</body>
+</html>

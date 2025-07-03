@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>マニュアル一覧</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+</head>
+<body>
+    <h1>マニュアル一覧</h1>
+
+    {% if account %}
+        {% if session.role == 'admin' %}
+            <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
+        {% else %}
+            <a href="/account/{{ account }}">← ホームに戻る</a>
+        {% endif %}
+    {% else %}
+        <a href="/">← ホームに戻る</a>
+    {% endif %}
+
+    <!-- カテゴリ選択 -->
+    <form method="get">
+        <select name="category" onchange="this.form.submit()">
+            <option value="" {% if not current_category %}selected{% endif %}>全てのカテゴリ</option>
+            {% for c in categories %}
+            <option value="{{c}}" {% if c == current_category %}selected{% endif %}>{{c}}</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="view" value="{{view_mode}}">
+    </form>
+
+    <!-- 表示モード切替 -->
+    <div>
+        <a href="?category={{current_category}}&view=gallery">ギャラリー</a> |
+        <a href="?category={{current_category}}&view=list">リスト</a>
+    </div>
+
+    {% if view_mode == 'gallery' %}
+    <div class="gallery">
+        {% for cat, file in files %}
+        <div class="card">
+            <a href="{{ url_for('manual.preview_manual', category=cat, filename=file) }}" target="_blank">
+                {{ file }} <small>({{ cat }})</small>
+            </a>
+            {% if account == 'admin' %}
+                <br>
+                <a href="{{ url_for('manual.delete_manual', category=cat, filename=file) }}"
+                   onclick="return confirm('本当に削除しますか？');">🗑️ 削除</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <table>
+        <tr><th>カテゴリ</th><th>ファイル名</th><th>操作</th></tr>
+        {% for cat, file in files %}
+        <tr>
+            <td>{{ cat }}</td>
+            <td>
+                <a href="{{ url_for('manual.preview_manual', category=cat, filename=file) }}" target="_blank">
+                    {{ file }}
+                </a>
+            </td>
+            <td>
+                {% if account == 'admin' %}
+                <a href="{{ url_for('manual.delete_manual', category=cat, filename=file) }}"
+                   onclick="return confirm('本当に削除しますか？');">🗑️ 削除</a>
+                {% else %}
+                -
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>マニュアルアップロード</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+</head>
+<body>
+    <h1>マニュアルアップロード</h1>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <label>カテゴリ:
+            <select name="category" required>
+                {% for c in categories %}
+                <option value="{{c}}">{{c}}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br>
+        <label>ファイル:
+            <input type="file" name="file" required>
+        </label>
+        <br><br>
+        <button type="submit">アップロード</button>
+    </form>
+
+    <li><a href="{{ url_for('admin.admin_home') }}" style="margin-left: 20px;">🏠 ホームに戻る</a></li>
+
+</body>
+</html>

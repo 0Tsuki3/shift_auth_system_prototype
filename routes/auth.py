@@ -6,8 +6,9 @@ from utils.csv_utils import load_auth_data
 auth_blueprint = Blueprint("auth", __name__)
 
 @auth_blueprint.route("/")
-def root():
-    return redirect(url_for("auth.login"))
+def public_home():
+    return render_template('public_home.html')
+
 
 @auth_blueprint.route("/login", methods=["GET", "POST"])
 def login():
@@ -38,3 +39,9 @@ def login():
     return render_template("login.html", error=error)
 
 
+
+
+@auth_blueprint.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("auth.login"))  # トップページへリダイレクト

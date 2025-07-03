@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>マニュアルプレビュー</title>
+    {% if account %}
+        {% if session.role == 'admin' %}
+            <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
+        {% else %}
+            <a href="/account/{{ account }}">← ホームに戻る</a>
+        {% endif %}
+    {% else %}
+        <a href="/">← ホームに戻る</a>
+    {% endif %}
+
+    <!-- 左上の固定ボタン -->
+    <div style="position: fixed; top: 10px; left: 10px; z-index: 9999;">
+        <a href="{{ url_for('manual.view_manual', category=category) }}">📚 一覧に戻る</a>
+    </div>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+</head>
+<body>
+    <div class="markdown-body">
+        {{content|safe}}
+    </div>
+
+    <div style="position: fixed; bottom: 10px; right: 10px; z-index: 9999;">
+        <a href="#top" style="margin-right: 10px;">🔝 トップに戻る</a>
+    </div>
+
+</body>
+</html>

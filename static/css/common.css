@@ -1,0 +1,39 @@
+body {
+    font-family: sans-serif;
+    background: #fafafa;
+    padding: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.card {
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    width: 200px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+}
+
+.markdown-body {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}

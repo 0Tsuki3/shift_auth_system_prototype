@@ -6,6 +6,7 @@
 </head>
 <body>
   <h2>新規スタッフ登録</h2>
+  
   {% if message %}
     <p style="color: green;">{{ message }}</p>
   {% endif %}
@@ -43,5 +44,8 @@
     </label><br><br>
     <button type="submit">登録</button>
   </form>
+
+<li><a href="{{ url_for('admin.admin_home') }}" style="margin-left: 20px;">🏠 ホームに戻る</a></li>
+
 </body>
 </html>

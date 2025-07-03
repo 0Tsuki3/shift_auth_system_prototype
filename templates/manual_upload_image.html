@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>画像アップロード</title>
+</head>
+<body>
+<h1>画像アップロード</h1>
+
+<form method="POST" enctype="multipart/form-data">
+    <label>カテゴリ:
+        <select name="category">
+            {% for c in categories %}
+            <option value="{{c}}">{{c}}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <br><br>
+    <input type="file" name="image">
+    <button type="submit">アップロード</button>
+</form>
+
+<a href="{{ url_for('manual.view_manual') }}">← マニュアル一覧に戻る</a>
+</body>
+</html>
