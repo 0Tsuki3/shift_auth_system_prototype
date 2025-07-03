@@ -10,8 +10,9 @@
 
     <h2>メニュー</h2>
     <ul>
+        <li><a href="{{ url_for('memo.view_memo') }}">📝 発注仕込みメモ管理ページ</a></li>
         <li><a href="{{ url_for('manual.view_manual') }}">📖 マニュアル閲覧</a></li>
-        <li><a href="{{ url_for('stock.stock_home') }}">📦 ストック管理</a></li>
+        <li><a href="{{ url_for('stock.stock_home') }}">📦 ドリンクストック管理</a></li>
         <li><a href="{{ url_for('shift_public.view_shift_public') }}">📅 シフト表（閲覧専用）</a></li>
 
     </ul>

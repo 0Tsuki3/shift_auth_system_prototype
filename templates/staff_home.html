@@ -32,6 +32,7 @@
         <li><a href="{{ url_for('manual.view_manual') }}">📖 マニュアル閲覧</a></li>
         <li><a href="{{ url_for('stock.stock_home') }}">📦 ストック管理</a></li>
         <li><a href="/view_all/{{ account }}?month={{ this_month }}">シフト表(閲覧専用)<small>(下にあるのに。。)</small><span style="font-size: 8px ;">（うざっ）</span></a></li>
+        <li><a href="{{ url_for('memo.view_memo') }}">📝 発注仕込みメモ管理ページ</a></li>
     </ul>
 
     <h2>{{ next_month }} のシフト希望</h2>
