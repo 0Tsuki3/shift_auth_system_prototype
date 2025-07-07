@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>売り切れ・在庫少ない商品管理</title>
+    <style>
+        body { background: #f7f7f7; }
+        .soldout-list {
+            width: 90%;
+            max-width: 600px;
+            margin: 30px auto 20px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 18px 24px;
+        }
+        .soldout-list h3 { margin-top: 0; }
+        .soldout-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .soldout-item:last-child { border-bottom: none; }
+        .soldout-name { font-weight: bold; }
+        .delete-btn {
+            background: #e53935 !important;
+            color: #fff !important;
+            border: none;
+            border-radius: 12px !important;
+            padding: 8px 24px;
+            cursor: pointer;
+            font-size: 1em;
+            box-shadow: 0 2px 6px rgba(229,57,53,0.08);
+            transition: background 0.2s;
+        }
+        .delete-btn:hover { background: #b71c1c !important; }
+        .lowstock-container {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(110px, 1fr));
+            gap: 24px;
+            justify-content: center;
+            margin: 30px auto 0 auto;
+            width: 90%;
+            max-width: 900px;
+        }
+        .lowstock-card {
+            width: 100%;
+            max-width: 160px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 16px 8px 12px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .lowstock-name {
+            font-size: 1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .lowstock-qty {
+            font-size: 1.3em;
+            margin-bottom: 12px;
+        }
+        .lowstock-actions-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        .lowstock-actions-vertical form {
+            display: block;
+            width: 100%;
+        }
+        .lowstock-actions-vertical button {
+            font-size: 1em;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: #e0e0e0;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: block;
+            margin: 0 auto;
+        }
+        .lowstock-actions-vertical button:hover {
+            background: #b2dfdb;
+        }
+        .lowstock-delete-btn {
+            background: #e53935 !important;
+            color: #fff !important;
+            border: none;
+            border-radius: 12px !important;
+            padding: 8px 24px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 12px;
+            width: auto !important;
+            height: auto !important;
+            display: block;
+            box-shadow: 0 2px 6px rgba(229,57,53,0.08);
+            transition: background 0.2s;
+        }
+        .lowstock-delete-btn:hover { background: #b71c1c !important; }
+        h2 { text-align: center; margin-top: 24px; }
+        .home-btn {
+            display: inline-block;
+            margin: 18px 0 0 24px;
+            padding: 8px 22px;
+            background: #80cbc4;
+            color: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1.1em;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(128,203,196,0.08);
+            transition: background 0.2s;
+        }
+        .home-btn:hover {
+            background: #009688;
+        }
+    </style>
+</head>
+<body>
+    <a href="{{ home_url }}" class="home-btn">🏠 ホームに戻る</a>
+    <h2>売り切れ・在庫少ない商品管理</h2>
+    <div class="soldout-list">
+        <h3>売り切れ商品リスト</h3>
+        {% if soldout %}
+            {% for item in soldout %}
+            <div class="soldout-item">
+                <span class="soldout-name">{{ item.item }}</span>
+                <form method="post" action="{{ url_for('stock.stock_alert_restore') }}" style="display:inline; margin-right:8px;">
+                    <input type="hidden" name="item" value="{{ item.item }}">
+                    <button type="submit" class="plus-btn" style="background:#80cbc4; color:#fff; border-radius:50%; width:28px; height:28px; font-size:1.2em; border:none; cursor:pointer;">＋</button>
+                </form>
+                <form method="post" action="{{ url_for('stock.stock_alert_delete') }}" style="display:inline;">
+                    <input type="hidden" name="item" value="{{ item.item }}">
+                    <button type="submit" class="delete-btn">削除</button>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="color:#888;">売り切れの商品はありません。</div>
+        {% endif %}
+    </div>
+    <div class="lowstock-container">
+        {% if lowstock %}
+            {% for item in lowstock %}
+            <div class="lowstock-card">
+                <div class="lowstock-name">{{ item.item }}</div>
+                <div class="lowstock-actions-vertical">
+                    <form method="post" action="{{ url_for('stock.stock_alert_plus') }}">
+                        <input type="hidden" name="item" value="{{ item.item }}">
+                        <button type="submit">＋</button>
+                    </form>
+                    <div class="lowstock-qty">{{ item.quantity }}</div>
+                    <form method="post" action="{{ url_for('stock.stock_alert_minus') }}">
+                        <input type="hidden" name="item" value="{{ item.item }}">
+                        <button type="submit">−</button>
+                    </form>
+                    <form method="post" action="{{ url_for('stock.stock_alert_delete') }}">
+                        <input type="hidden" name="item" value="{{ item.item }}">
+                        <button type="submit" class="lowstock-delete-btn">削除</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="grid-column: 1 / -1; color: #888; text-align: center;">在庫が少ない商品はありません。</div>
+        {% endif %}
+    </div>
+    <div class="add-form" style="margin-top:32px;">
+        <h3>新しい商品を追加</h3>
+        <form method="post" action="{{ url_for('stock.stock_alert_add') }}">
+            <input type="text" name="item" placeholder="商品名" required>
+            <input type="number" name="quantity" placeholder="在庫数 (0以上)" min="0" required>
+            <button type="submit">追加</button>
+        </form>
+    </div>
+    <div style="margin: 1.5em 0; text-align:right;">
+        <a href="{{ url_for('notice_memo.view_notice_memo') }}" style="font-size:1.1em;">→ お知らせメモへ</a>
+    </div>
+</body>
+</html> 

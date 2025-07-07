@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>発注メモ編集</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    form { max-width: 400px; margin: 2rem auto; background: #f9f9f9; padding: 2rem; border-radius: 8px; }
+    label { display: block; margin-bottom: 1rem; }
+    input { width: 100%; padding: 0.5rem; font-size: 1rem; margin-top: 0.3rem; }
+    button { padding: 0.5rem 1.5rem; font-size: 1rem; border-radius: 6px; border: none; background: #80cbc4; color: #fff; cursor: pointer; }
+    button:hover { background: #009688; }
+  </style>
+</head>
+<body>
+  <h2>発注メモ編集</h2>
+  <form method="post">
+    <label>商品名
+      <input type="text" name="item_name" value="{{ memo.item_name }}" required>
+    </label>
+    <label>数量
+      <input type="text" name="quantity" value="{{ memo.quantity }}">
+    </label>
+    <label>発注した人
+      <input type="text" name="ordered_by" value="{{ memo.ordered_by }}">
+    </label>
+    <button type="submit">保存</button>
+    <a href="{{ url_for('order_memo.view_order_memo') }}" style="margin-left:1em;">キャンセル</a>
+  </form>
+</body>
+</html> 

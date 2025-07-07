@@ -396,19 +396,21 @@ def download_all_csv():
     zip_buffer = io.BytesIO()
 
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for folder_name in ["shift", "shift_request", "imported_requests", "notes"]:
-            folder_path = f"data/{folder_name}"
-            if os.path.exists(folder_path):
-                for filename in os.listdir(folder_path):
-                    if filename.endswith(".csv"):
-                        file_path = os.path.join(folder_path, filename)
-                        zipf.write(file_path, arcname=f"{folder_name}/{filename}")
+        # dataフォルダ全体を再帰的にZIPに追加
+        data_path = "data"
+        if os.path.exists(data_path):
+            for root, dirs, files in os.walk(data_path):
+                for filename in files:
+                    file_path = os.path.join(root, filename)
+                    # 相対パスをarcnameとして使用（data/から始まるパス）
+                    arcname = os.path.relpath(file_path, ".")
+                    zipf.write(file_path, arcname=arcname)
 
     zip_buffer.seek(0)
     return send_file(
         zip_buffer,
         mimetype='application/zip',
-        attachment_filename='shift_data.zip',  # ✅ 古いFlaskでもOK
+        attachment_filename='data_folder.zip',  # ファイル名を変更
         as_attachment=True
     )
 

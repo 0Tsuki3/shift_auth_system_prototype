@@ -3,15 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>マニュアルプレビュー</title>
-    {% if account %}
-        {% if session.role == 'admin' %}
-            <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
-        {% else %}
-            <a href="/account/{{ account }}">← ホームに戻る</a>
-        {% endif %}
-    {% else %}
-        <a href="/">← ホームに戻る</a>
-    {% endif %}
+    <a href="{{ url_for('auth.public_home') }}">← ホームに戻る</a>
 
     <!-- 左上の固定ボタン -->
     <div style="position: fixed; top: 10px; left: 10px; z-index: 9999;">

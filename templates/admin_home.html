@@ -14,22 +14,20 @@
         <li><a href="{{ url_for('admin.graph_month_select') }}">📊 管理者用シフト人数グラフ（月選択）</a></li>
         <li><a href="{{ url_for('admin.download_all_csv') }}">📦 データ一括ダウンロード</a></li>
         <li><a href="{{ url_for('admin.view_imported_shift') }}">📥 インポート済みシフト希望を見る</a></li>
+        <li><a href="{{ url_for('stock.stock_list') }}">ドリンク管理</a></li>
         <a href="{{ url_for('auth.logout') }}">🚪 ログアウト</a>
-
-
-
     </ul>
 
     <h2>マニュアル等管理</h2>
     <ul>
-        <li><a href="{{ url_for('memo.view_memo') }}">📝 発注仕込みメモ管理ページ</a></li>
+        <li><a href="{{ url_for('kitchen_memo.view_kitchen_memo') }}">🍳 仕込みメモ</a></li>
+        <li><a href="{{ url_for('order_memo.view_order_memo') }}">🛒 発注メモ</a></li>
+        <li><a href="{{ url_for('notice_memo.view_notice_memo') }}">📢 お知らせメモ</a></li>
         <li><a href="{{ url_for('manual.view_manual') }}">📤 マニュアル一覧</a></li>
         <li><a href="{{ url_for('manual.upload_manual') }}">📤 マニュアルアップロード</a></li>
         <li><a href="{{ url_for('manual.upload_manual_image') }}">📤 マニュアル画像アップロード</a></li>
         <li><a href="{{ url_for('manual.manage_category') }}">📚 カテゴリー管理</a></li>
     </ul>
-
-
 </body>
 </html>
 

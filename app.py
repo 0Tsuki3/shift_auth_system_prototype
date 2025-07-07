@@ -2,10 +2,12 @@ from flask import Flask
 from routes.auth import auth_blueprint
 from routes.admin import admin_blueprint
 from routes.staff import staff_blueprint
-from routes.stock import stock_blueprint  # ← 追加
+from routes.stock import stock_bp # ← 追加
 from routes.manual import manual_bp
 from routes.shift_public import shift_public_bp
-from routes.manual_memo import memo_bp
+from routes.manual_memo import kitchen_memo_bp
+from routes.order_memo import order_memo_bp
+from routes.notice_memo import notice_memo_bp
 
 
 
@@ -18,10 +20,12 @@ app.secret_key = "secret_key_for_session"
 app.register_blueprint(auth_blueprint)
 app.register_blueprint(admin_blueprint)
 app.register_blueprint(staff_blueprint)
-app.register_blueprint(stock_blueprint)  # ← 追加
+app.register_blueprint(stock_bp)  # ← 追加
 app.register_blueprint(manual_bp)
 app.register_blueprint(shift_public_bp)
-app.register_blueprint(memo_bp)
+app.register_blueprint(kitchen_memo_bp)
+app.register_blueprint(order_memo_bp)
+app.register_blueprint(notice_memo_bp)
 
 if __name__ == '__main__':
     import os

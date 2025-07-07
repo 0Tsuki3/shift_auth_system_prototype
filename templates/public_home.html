@@ -9,17 +9,56 @@
     <h1>カフェ 業務情報ページ</h1>
 
     <h2>メニュー</h2>
-    <ul>
-        <li><a href="{{ url_for('memo.view_memo') }}">📝 発注仕込みメモ管理ページ</a></li>
-        <li><a href="{{ url_for('manual.view_manual') }}">📖 マニュアル閲覧</a></li>
-        <li><a href="{{ url_for('stock.stock_home') }}">📦 ドリンクストック管理</a></li>
-        <li><a href="{{ url_for('shift_public.view_shift_public') }}">📅 シフト表（閲覧専用）</a></li>
-
-    </ul>
+    <div class="card-grid">
+      <div class="card"><a href="{{ url_for('kitchen_memo.view_kitchen_memo') }}">🍳<br>仕込みメモ</a></div>
+      <div class="card"><a href="{{ url_for('order_memo.view_order_memo') }}">��<br>発注メモ</a></div>
+      <div class="card"><a href="{{ url_for('notice_memo.view_notice_memo') }}">📢<br>お知らせメモ</a></div>
+      <div class="card"><a href="{{ url_for('manual.view_manual') }}">📖<br>マニュアル</a></div>
+      <div class="card"><a href="{{ url_for('stock.stock_list') }}">🥤<br>ドリンク管理</a></div>
+      <div class="card"><a href="{{ url_for('stock.stock_alert') }}">⚠️<br>在庫アラート</a></div>
+      <div class="card"><a href="{{ url_for('shift_public.view_shift_public') }}">📅<br>シフト表</a></div>
+    </div>
 
     <h2>管理者・スタッフの方はこちら</h2>
     <ul>
         <li><a href="{{ url_for('auth.login') }}">🔑 ログイン</a></li>
     </ul>
+
+    <style>
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.2em;
+      margin: 2em 0;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px #0001;
+      padding: 1em 0.5em;
+      min-width: 0;
+      max-width: 180px;
+      margin: 0 auto;
+      text-align: center;
+      font-size: 1.05em;
+      transition: box-shadow 0.2s;
+      word-break: break-all;
+    }
+    .card a {
+      text-decoration: none;
+      color: #222;
+      display: block;
+    }
+    .card:hover {
+      box-shadow: 0 4px 16px #0002;
+      background: #f0f7ff;
+    }
+    @media (max-width: 700px) {
+      .card-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 400px) {
+      .card-grid { grid-template-columns: 1fr; }
+    }
+    </style>
 </body>
 </html>

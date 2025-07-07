@@ -8,15 +8,7 @@
 <body>
     <h1>マニュアル一覧</h1>
 
-    {% if account %}
-        {% if session.role == 'admin' %}
-            <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
-        {% else %}
-            <a href="/account/{{ account }}">← ホームに戻る</a>
-        {% endif %}
-    {% else %}
-        <a href="/">← ホームに戻る</a>
-    {% endif %}
+    <a href="{{ url_for('auth.public_home') }}">← ホームに戻る</a>
 
     <!-- カテゴリ選択 -->
     <form method="get">
