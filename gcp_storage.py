@@ -1,11 +1,21 @@
 import os
-from google.cloud import storage
 import tempfile
 import shutil
+
+try:
+    from google.cloud import storage
+    GCP_AVAILABLE = True
+except ImportError:
+    print("google-cloud-storage not available")
+    GCP_AVAILABLE = False
 
 class GCPStorageManager:
     def __init__(self, bucket_name="shift-auth-system-data"):
         self.bucket_name = bucket_name
+        if not GCP_AVAILABLE:
+            self.available = False
+            return
+            
         try:
             self.client = storage.Client()
             self.bucket = self.client.bucket(bucket_name)
