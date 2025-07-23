@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>人数構成プレビュー</title>
+  <style>
+    body { font-family: sans-serif; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h2>{{ date }} の人数構成</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>開始</th>
+        <th>終了</th>
+        <th>稼働中</th>
+        <th>休憩中</th>
+        <th>デスク</th>
+        <th>その他</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for seg in segments %}
+        <tr>
+          <td>{{ seg.start }}</td>
+          <td>{{ seg.end }}</td>
+          <td>{{ seg.active|join(", ") }}</td>
+          <td>{{ seg.break|join(", ") }}</td>
+          <td>{{ seg.desk|join(", ") }}</td>
+          <td>{{ seg.other|join(", ") }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

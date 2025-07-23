@@ -8,12 +8,12 @@
 <body>
     <h1>カテゴリ管理</h1>
 
-    {% if account and role == 'admin' %}
-        <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
+    {% if account == 'admin' %}
+      <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
     {% elif account %}
-        <a href="{{ url_for('staff.staff_home', account=account) }}">← ホームに戻る</a>
+      <a href="{{ url_for('staff.staff_home', account=account) }}">← ホームに戻る</a>
     {% else %}
-        <a href="/">← ホームに戻る</a>
+      <a href="{{ url_for('auth.public_home') }}">← ホームに戻る</a>
     {% endif %}
 
     <h2>追加</h2>

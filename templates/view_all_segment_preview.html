@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ month }} のシフトプレビュー</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <style>
+        .day-block {
+            border: 1px solid #ccc;
+            margin: 30px 0;
+            padding: 15px;
+        }
+        .time-segment {
+            border-top: 1px solid #aaa;
+            padding: 5px;
+        }
+        .back-to-top {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ month }} のシフトプレビュー</h1>
+
+    <div class="back-to-top">
+        <a href="#top">⬆ トップに戻る</a>
+    </div>
+
+    {% for item in all_segments %}
+        <div class="day-block" id="{{ item.date }}">
+            <h2>{{ item.date }}（{{ ['月','火','水','木','金','土','日'][datetime.strptime(item.date, '%Y-%m-%d').weekday()] }}）</h2>
+            {% for seg in item.segments %}
+                <div class="time-segment">
+                    <strong>{{ seg.start }} - {{ seg.end }}</strong>（{{ seg.count }}人）
+                    <ul>
+                        {% if seg.working %}
+                            <li>勤務中: {{ seg.working | join(', ') }}</li>
+                        {% endif %}
+                        {% if seg.resting %}
+                            <li>休憩中: {{ seg.resting | join(', ') }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            {% endfor %}
+            <div class="back-to-top">
+                <a href="#top">⬆ トップに戻る</a>
+            </div>
+        </div>
+    {% endfor %}
+</body>
+</html>

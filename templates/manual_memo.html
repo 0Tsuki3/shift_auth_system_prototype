@@ -170,10 +170,10 @@
 
   <!-- 戻るリンク -->
   <div style="margin-top: 2rem;">
-    {% if session.get('is_admin') %}
-      <a href="{{ url_for('admin_home') }}">← ホームに戻る</a>
-    {% elif session.get('is_staff') %}
-      <a href="{{ url_for('staff_home') }}">← ホームに戻る</a>
+    {% if session.get('role') == 'admin' %}
+      <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
+    {% elif session.get('role') == 'staff' and account %}
+      <a href="{{ url_for('staff.staff_home', account=account) }}">← ホームに戻る</a>
     {% else %}
       <a href="{{ url_for('auth.public_home') }}">← ホームに戻る</a>
     {% endif %}

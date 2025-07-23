@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ month }} のシフト（1ヶ月表示）</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 0;
+      margin: 0;
+      font-size: 12px;
+    }
+
+    .day-section {
+      margin-bottom: 48px;
+    }
+
+    .scroll-container {
+      overflow-x: auto;
+      overflow-y: auto;
+      height: auto;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 100;
+      display: flex;
+    }
+
+    .staff-name.time-label {
+      width: 120px;
+      flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid #ccc;
+      font-weight: bold;
+      padding: 2px 4px;
+    }
+
+    .time-header {
+      display: grid;
+      grid-template-columns: repeat(34, 30px);
+      border-bottom: 1px solid #ccc;
+    }
+
+    .time-slot {
+      font-size: 10px;
+      text-align: center;
+      border-left: 1px solid #ccc;
+      padding: 2px 0;
+    }
+
+    .staff-row {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .staff-name {
+      width: 120px;
+      flex-shrink: 0;
+      font-weight: bold;
+      position: sticky;
+      left: 0;
+      background: #fff;
+      z-index: 50;
+      border-bottom: 1px solid #eee;
+      padding: 2px 4px;
+    }
+
+    .bar-area {
+      position: relative;
+      width: calc(34 * 30px);
+      height: 20px;
+      background: #f9f9f9;
+      border-bottom: 1px solid #eee;
+    }
+
+    .bar {
+      position: absolute;
+      height: 100%;
+      border-radius: 2px;
+    }
+
+    .bar.shift { background-color: #4a90e2; }
+    .bar.break { background-color: #f8e71c; cursor: pointer; }
+    .bar.desk  { background-color: #7ed321; cursor: pointer; }
+    .bar.other { background-color: #f5a623; cursor: pointer; }
+
+    .day-heading {
+      padding: 16px;
+      font-size: 16px;
+      background: #fafafa;
+      border-top: 1px solid #ddd;
+    }
+
+    .anchor-link {
+      font-size: 10px;
+      margin-left: 8px;
+      color: #888;
+    }
+
+    .back-link {
+      padding: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="padding: 12px;">{{ month }} のシフト（ガントチャート表示）</h2>
+
+  {% for date, schedule in schedules.items() %}
+    <div class="day-section" id="{{ date }}">
+      <div class="day-heading">
+        {{ date }}（{{ ['月','火','水','木','金','土','日'][loop.index0 % 7] }})
+        <a href="#top" class="anchor-link">↑ トップへ戻る</a>
+      </div>
+
+      <div class="scroll-container">
+        <div class="header">
+          <div class="staff-name time-label">時間</div>
+          <div class="time-header">
+            {% for h in range(7, 24) %}
+              <div class="time-slot">{{ "%02d:00" % h }}</div>
+              <div class="time-slot"></div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {% for name, info in schedule.items() %}
+          <div class="staff-row" data-name="{{ name }}">
+            <div class="staff-name">{{ name }}</div>
+            <div class="bar-area">
+              {% for s in info.shift %}
+                {% set start = s[0] %}
+                {% set end = s[1] %}
+                {% set left = ((start[:2]|int - 7) * 2 + (1 if start[3:] == '30' else 0)) * 30 %}
+                {% set width = (((end[:2]|int * 60 + end[3:]|int) - (start[:2]|int * 60 + start[3:]|int)) // 30) * 30 %}
+                <div class="bar shift" style="left: {{ left }}px; width: {{ width }}px;"></div>
+              {% endfor %}
+              {% for e in info.exclude %}
+                {% set start = e.start %}
+                {% set end = e.end %}
+                {% set category = e.category %}
+                {% set left = ((start[:2]|int - 7) * 2 + (1 if start[3:] == '30' else 0)) * 30 %}
+                {% set width = (((end[:2]|int * 60 + end[3:]|int) - (start[:2]|int * 60 + start[3:]|int)) // 30) * 30 %}
+                <div
+                  class="bar {{ category }}"
+                  style="left: {{ left }}px; width: {{ width }}px;"
+                ></div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+
+  <div class="back-link">
+    <a name="top"></a>
+    <a href="/">← ホームに戻る</a>
+  </div>
+</body>
+</html>

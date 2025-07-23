@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ month }} のシフト一覧</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; font-size: 12px; }
+    .day-header { padding: 12px; background: #eef; font-size: 16px; font-weight: bold; }
+    .scroll-container { overflow-x: auto; overflow-y: auto; }
+    .header, .staff-row { display: flex; }
+    .staff-name, .staff-name.time-label { width: 120px; flex-shrink: 0; padding: 2px 4px; font-weight: bold; background: #fff; position: sticky; left: 0; z-index: 10; }
+    .time-header { display: grid; grid-template-columns: repeat(34, 30px); border-bottom: 1px solid #ccc; }
+    .time-slot { font-size: 10px; text-align: center; border-left: 1px solid #ccc; padding: 2px 0; }
+    .bar-area { position: relative; width: calc(34 * 30px); height: 20px; background: #f9f9f9; border-bottom: 1px solid #eee; }
+    .bar { position: absolute; height: 100%; border-radius: 2px; }
+    .bar.shift { background-color: #4a90e2; }
+    .bar.break { background-color: #f8e71c; cursor: pointer; }
+    .bar.desk  { background-color: #7ed321; cursor: pointer; }
+    .bar.other { background-color: #f5a623; cursor: pointer; }
+    .back-link { margin: 16px; }
+    #excludeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 200; justify-content: center; align-items: center; }
+    #excludeModal .modal-content { background: #fff; padding: 20px; border-radius: 6px; width: 300px; }
+    #excludeModal form label { display: block; margin-top: 8px; font-weight: bold; }
+    #excludeModal form input, #excludeModal form select { width: 100%; margin-bottom: 8px; }
+    #excludeModal form button { margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <div class="back-link">
+    <a href="{{ home_url }}">↑ ホームへ戻る</a>
+  </div>
+  <div id="top"></div>
+
+  {% for day in all_data %}
+    <div id="{{ day.date }}">
+      <div class="day-header">{{ day.date }} のシフト（ガントチャート）</div>
+
+      <div class="scroll-container">
+        <div class="header">
+          <div class="staff-name time-label">時間</div>
+          <div class="time-header">
+            {% for h in range(7, 24) %}
+              <div class="time-slot">{{ "%02d:00" % h }}</div>
+              <div class="time-slot"></div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {% for name, info in day.schedule.items() %}
+          <div class="staff-row" data-name="{{ name }}">
+            <div class="staff-name">{{ name }}</div>
+            <div class="bar-area">
+              {% for s in info.shift %}
+                {% set start = s[0] %}
+                {% set end = s[1] %}
+                {% set left = ((start[:2]|int - 7) * 2 + (1 if start[3:] == '30' else 0)) * 30 %}
+                {% set width = (((end[:2]|int * 60 + end[3:]|int) - (start[:2]|int * 60 + start[3:]|int)) // 30) * 30 %}
+                <div class="bar shift" style="left: {{ left }}px; width: {{ width }}px;"></div>
+              {% endfor %}
+              {% for e in info.exclude %}
+                {% set start = e.start %}
+                {% set end = e.end %}
+                {% set category = e.category %}
+                {% set left = ((start[:2]|int - 7) * 2 + (1 if start[3:] == '30' else 0)) * 30 %}
+                {% set width = (((end[:2]|int * 60 + end[3:]|int) - (start[:2]|int * 60 + start[3:]|int)) // 30) * 30 %}
+                <div class="bar {{ category }}"
+                     style="left: {{ left }}px; width: {{ width }}px;"
+                     data-name="{{ name }}"
+                     data-date="{{ day.date }}"
+                     data-start="{{ start }}"
+                     data-end="{{ end }}"
+                     data-category="{{ category }}"
+                ></div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+
+  <div class="back-link">
+    <a href="{{ home_url }}">↑ トップへ戻る</a>
+  </div>
+
+  <!-- モーダル（除外登録） -->
+  {% if is_admin %}
+  <div id="excludeModal">
+    <div class="modal-content">
+      <h3>除外時間の登録 / 編集</h3>
+      <form id="excludeForm">
+        <input type="hidden" id="ex-date">
+        <input type="hidden" id="ex-name">
+
+        <label>開始時刻：</label>
+        <input type="time" id="ex-start" required>
+
+        <label>終了時刻：</label>
+        <input type="time" id="ex-end" required>
+
+        <label>区分：</label>
+        <select id="ex-category" required>
+          <option value="break">休憩</option>
+          <option value="desk">デスクワーク</option>
+          <option value="other">その他</option>
+        </select>
+
+        <div style="margin-top: 12px;">
+          <button type="submit">保存</button>
+          <button type="button" onclick="closeModal()">キャンセル</button>
+          <button type="button" id="deleteBtn" style="display: none;">削除</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+    const isAdmin = {{ 'true' if is_admin else 'false' }};
+    if (isAdmin) {
+      document.querySelectorAll('.staff-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const name = row.getAttribute('data-name');
+          const date = row.closest('[id]').id;
+          document.getElementById("ex-date").value = date;
+          document.getElementById("ex-name").value = name;
+          document.getElementById("ex-start").value = "";
+          document.getElementById("ex-end").value = "";
+          document.getElementById("ex-category").value = "break";
+          document.getElementById("deleteBtn").style.display = "none";
+          document.getElementById("excludeModal").style.display = "flex";
+          document.getElementById("excludeModal").dataset.mode = "add";
+        });
+      });
+
+      document.querySelectorAll('.bar.break, .bar.desk, .bar.other').forEach(bar => {
+        bar.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const name = bar.dataset.name;
+          const date = bar.dataset.date;
+          const start = bar.dataset.start;
+          const end = bar.dataset.end;
+          const category = bar.dataset.category;
+          document.getElementById("ex-date").value = date;
+          document.getElementById("ex-name").value = name;
+          document.getElementById("ex-start").value = start;
+          document.getElementById("ex-end").value = end;
+          document.getElementById("ex-category").value = category;
+          document.getElementById("excludeModal").dataset.mode = "edit";
+          document.getElementById("excludeModal").dataset.originalStart = start;
+          document.getElementById("excludeModal").dataset.originalEnd = end;
+          document.getElementById("excludeModal").dataset.originalCategory = category;
+          document.getElementById("deleteBtn").style.display = "inline-block";
+          document.getElementById("excludeModal").style.display = "flex";
+        });
+      });
+
+      function closeModal() {
+        document.getElementById("excludeModal").style.display = "none";
+      }
+
+      document.getElementById("excludeForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const modal = document.getElementById("excludeModal");
+        const isEdit = modal.dataset.mode === "edit";
+        const data = {
+          date: document.getElementById("ex-date").value,
+          name: document.getElementById("ex-name").value,
+          start: document.getElementById("ex-start").value,
+          end: document.getElementById("ex-end").value,
+          category: document.getElementById("ex-category").value
+        };
+        if (isEdit) {
+          data.original_start = modal.dataset.originalStart;
+          data.original_end = modal.dataset.originalEnd;
+          data.original_category = modal.dataset.originalCategory;
+        }
+        const url = isEdit ? "/api/exclude/update" : "/api/exclude/add";
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) location.reload();
+        else alert("保存に失敗しました");
+      });
+
+      document.getElementById("deleteBtn").addEventListener("click", async () => {
+        if (!confirm("この除外時間を削除しますか？")) return;
+        const modal = document.getElementById("excludeModal");
+        const data = {
+          date: document.getElementById("ex-date").value,
+          name: document.getElementById("ex-name").value,
+          start: modal.dataset.originalStart,
+          end: modal.dataset.originalEnd,
+          category: modal.dataset.originalCategory
+        };
+        const res = await fetch("/api/exclude/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) location.reload();
+        else alert("削除に失敗しました");
+      });
+    }
+  </script>
+</body>
+</html>

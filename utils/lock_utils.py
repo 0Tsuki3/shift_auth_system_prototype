@@ -12,3 +12,6 @@ def is_editable(month: str, submitted_at: str) -> bool:
     deadline = datetime.strptime(month + f"-{締切日}", "%Y-%m-%d")
 
     return submitted <= deadline
+
+
+

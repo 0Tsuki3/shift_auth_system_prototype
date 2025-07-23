@@ -11,18 +11,25 @@
     <h2>メニュー</h2>
     <div class="card-grid">
       <div class="card"><a href="{{ url_for('kitchen_memo.view_kitchen_memo') }}">🍳<br>仕込みメモ</a></div>
-      <div class="card"><a href="{{ url_for('order_memo.view_order_memo') }}">��<br>発注メモ</a></div>
+      <div class="card"><a href="{{ url_for('order_memo.view_order_memo') }}">🛒<br>発注メモ</a></div>
       <div class="card"><a href="{{ url_for('notice_memo.view_notice_memo') }}">📢<br>お知らせメモ</a></div>
       <div class="card"><a href="{{ url_for('manual.view_manual') }}">📖<br>マニュアル</a></div>
       <div class="card"><a href="{{ url_for('stock.stock_list') }}">🥤<br>ドリンク管理</a></div>
       <div class="card"><a href="{{ url_for('stock.stock_alert') }}">⚠️<br>在庫アラート</a></div>
-      <div class="card"><a href="{{ url_for('shift_public.view_shift_public') }}">📅<br>シフト表</a></div>
+      <div class="card"><a href="{{ url_for('shift_public.vertical_graph_readonly') }}">📅<br>シフト人数表</a></div>
+      <div class="card"><a href="{{ url_for('shift_public.view_shift_public') }}">👀<br>シフト表</a></div>
+      <div class="card">
+        <a href="{{ url_for('monthly_shift.monthly_shift', month=now_month) }}">
+          📅<br>月別シフト（休憩とか）
+        </a>
+      </div>
     </div>
 
     <h2>管理者・スタッフの方はこちら</h2>
     <ul>
         <li><a href="{{ url_for('auth.login') }}">🔑 ログイン</a></li>
     </ul>
+
 
     <style>
     .card-grid {

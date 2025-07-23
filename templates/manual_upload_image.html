@@ -20,6 +20,12 @@
     <button type="submit">アップロード</button>
 </form>
 
-<a href="{{ url_for('manual.view_manual') }}">← マニュアル一覧に戻る</a>
+{% if account == 'admin' %}
+  <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
+{% elif account %}
+  <a href="{{ url_for('staff.staff_home', account=account) }}">← ホームに戻る</a>
+{% else %}
+  <a href="{{ url_for('auth.public_home') }}">← ホームに戻る</a>
+{% endif %}
 </body>
 </html>

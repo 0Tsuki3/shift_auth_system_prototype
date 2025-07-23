@@ -86,7 +86,11 @@
 </head>
 <body>
   <h2>{{ month }} シフト人数グラフ（閲覧専用）</h2>
-  <a href="/account/{{ account }}">← ホームに戻る</a>
+  {% if account %}
+    <a href="/account/{{ account }}">← ホームに戻る</a>
+  {% else %}
+    <a href="{{ url_for('auth.public_home') }}">← ホームに戻る</a>
+  {% endif %}
   <div class="graph-container">
     {% for day in graph_data %}
       <div>

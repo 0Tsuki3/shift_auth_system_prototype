@@ -104,13 +104,18 @@
           <div class="time-labels" style="height: 500px;">
             {% for segment in day.segments %}
               <div class="time-label" style="height: {{ segment.height }}px;">
-                {{ segment.start.replace(':30', '.5').replace(':00', '') }}
+                {% set h, m = segment.start.split(':') %}
+                {% set time_float = (h | int) + (m | int) / 60 %}
+                {{ ('%.2f' % time_float).rstrip('0').rstrip('.') }}
               </div>
             {% endfor %}
           </div>
           <div class="bar" style="height: 500px;">
             {% for segment in day.segments %}
-              <div class="segment" style="height: {{ segment.height }}px;" data-members="{{ segment.members|join(', ') }}">
+              <div class="segment"
+                   style="height: {{ segment.height }}px;"
+                   data-members="{{ segment.members|join(', ') }}"
+                   data-excluded="{{ segment.excluded|join(', ') }}">
                 <div class="segment-label">
                   {{ segment.count }}人
                 </div>
@@ -124,10 +129,17 @@
         <div class="bar-label">
           {% for d in date_labels %}
             {% if d.date == day.date %}
-              {{ d.label }}
+              {% if account %}
+                <!-- スタッフ側: 閲覧専用ページに飛ばす -->
+                <a href="/view_all/{{ account }}#{{ d.date }}">{{ d.label }}</a>
+              {% else %}
+                <!-- 管理者側: 編集ページに飛ばす -->
+                <a href="/monthly_shift/{{ month }}#{{ d.date }}">{{ d.label }}</a>
+              {% endif %}
             {% endif %}
           {% endfor %}
         </div>
+
 
         {% if daily_cost and daily_hours %}
         <!-- 人件費ラベル -->
@@ -149,12 +161,25 @@
       segment.addEventListener('click', () => {
         const tooltip = segment.querySelector('.tooltip');
         const members = segment.dataset.members;
+        const excluded = segment.dataset.excluded;
 
         if (tooltip.style.display === 'block') {
           tooltip.style.display = 'none';
         } else {
           document.querySelectorAll('.tooltip').forEach(t => t.style.display = 'none');
-          tooltip.innerHTML = (members ? members.split(', ').join('<br>') : '（メンバーなし）');
+
+          let content = '';
+          if (members) {
+            content += '<b>出勤中:</b><br>' + members.split(', ').join('<br>') + '<br>';
+          } else {
+            content += '<b>出勤中:</b><br>なし<br>';
+          }
+
+          if (excluded) {
+            content += '<b>除外中:</b><br>' + excluded.split(', ').join('<br>');
+          }
+
+          tooltip.innerHTML = content;
           tooltip.style.display = 'block';
         }
       });

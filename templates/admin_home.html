@@ -11,7 +11,8 @@
         <li><a href="{{ url_for('admin.add_staff') }}">➕ スタッフ登録</a></li>
         <li><a href="{{ url_for('admin.upload_staff') }}">📥 スタッフ一括アップロード</a></li>
         <li><a href="{{ url_for('admin.import_select') }}">📥 シフト希望インポート（月選択）</a></li>
-        <li><a href="{{ url_for('admin.graph_month_select') }}">📊 管理者用シフト人数グラフ（月選択）</a></li>
+        <li><a href="{{ url_for('admin.graph_month_select') }}">📊 人数グラフ（月選択）</a></li>
+        <li><a href="{{ url_for('admin.monthly_shift_select') }}">🛠️ 月別シフト（休憩編集）ページ選択</a></li>
         <li><a href="{{ url_for('admin.download_all_csv') }}">📦 データ一括ダウンロード</a></li>
         <li><a href="{{ url_for('admin.view_imported_shift') }}">📥 インポート済みシフト希望を見る</a></li>
         <li><a href="{{ url_for('stock.stock_list') }}">ドリンク管理</a></li>
@@ -28,6 +29,7 @@
         <li><a href="{{ url_for('manual.upload_manual_image') }}">📤 マニュアル画像アップロード</a></li>
         <li><a href="{{ url_for('manual.manage_category') }}">📚 カテゴリー管理</a></li>
     </ul>
+
 </body>
 </html>
 

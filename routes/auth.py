@@ -7,7 +7,9 @@ auth_blueprint = Blueprint("auth", __name__)
 
 @auth_blueprint.route("/")
 def public_home():
-    return render_template('public_home.html')
+    from datetime import datetime
+    now_month = datetime.now().strftime("%Y-%m")
+    return render_template('public_home.html', now_month=now_month)
 
 
 @auth_blueprint.route("/login", methods=["GET", "POST"])

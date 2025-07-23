@@ -108,3 +108,10 @@ def generate_date_list(month_str):
         results.append({'date': date_str, 'weekday': weekday_str})
 
     return results
+
+
+
+def get_current_month():
+    return datetime.now().strftime("%Y-%m")
+
+

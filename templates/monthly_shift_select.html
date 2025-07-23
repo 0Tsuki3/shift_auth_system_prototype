@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>月別シフト編集ページ選択</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    h1 { font-size: 1.4em; }
+    ul { list-style: none; padding: 0; }
+    li { margin: 1em 0; }
+    a { font-weight: bold; color: #4a90e2; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>月別シフト（休憩編集可）ページ選択</h1>
+  <ul>
+    {% for m in month_list %}
+      <li>
+        <a href="/monthly_shift/{{ m }}">{{ m }} のシフト編集ページへ</a>
+      </li>
+    {% endfor %}
+  </ul>
+  <div style="margin-top:2em;">
+    <a href="/admin/home">← 管理者ホームへ戻る</a>
+  </div>
+</body>
+</html> 

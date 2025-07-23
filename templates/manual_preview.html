@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>マニュアルプレビュー</title>
-    <a href="{{ url_for('auth.public_home') }}">← ホームに戻る</a>
+    {% if account == 'admin' %}
+      <a href="{{ url_for('admin.admin_home') }}">← ホームに戻る</a>
+    {% elif account %}
+      <a href="{{ url_for('staff.staff_home', account=account) }}">← ホームに戻る</a>
+    {% else %}
+      <a href="{{ url_for('auth.public_home') }}">← ホームに戻る</a>
+    {% endif %}
 
     <!-- 左上の固定ボタン -->
     <div style="position: fixed; top: 10px; left: 10px; z-index: 9999;">

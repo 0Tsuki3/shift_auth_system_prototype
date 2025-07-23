@@ -23,7 +23,7 @@ def stock_list():
         for row in reader:
             stocks.append(row)
     home_url = get_home_url()
-    return render_template('stock.html', stocks=stocks, home_url=home_url)
+    return render_template('stock.html', stocks=stocks, home_url=home_url, account=session.get('account'))
 
 # 在庫数の増減
 @stock_bp.route('/stock/update', methods=['POST'])
@@ -105,7 +105,7 @@ def stock_alert():
             elif qty > 0:
                 lowstock.append(row)
     home_url = get_home_url()
-    return render_template('stock_alert.html', soldout=soldout, lowstock=lowstock, home_url=home_url)
+    return render_template('stock_alert.html', soldout=soldout, lowstock=lowstock, home_url=home_url, account=session.get('account'))
 
 # アラート商品削除
 @stock_bp.route('/stock/alert/delete', methods=['POST'])

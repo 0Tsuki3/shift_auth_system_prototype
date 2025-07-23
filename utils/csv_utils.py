@@ -143,3 +143,9 @@ def load_imported_requests(month):
             for row in reader:
                 imported_requests.append(row)
     return imported_requests
+
+
+
+def load_shift_dicts(month):  # 新しい関数名
+    """shift_{month}.csv を list of dict で返す安全な関数"""
+    return load_csv(get_path("shift", month))

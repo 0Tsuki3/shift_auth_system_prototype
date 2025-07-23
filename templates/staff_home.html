@@ -48,6 +48,7 @@
         <li><a href="/view_shift/{{ account }}?month={{ this_month }}">自分の確定シフト</a></li>
         <li><a href="/view_all/{{ account }}?month={{ this_month }}">全体のシフト表</a></li>
         <li><a href="/graph/{{ account }}?month={{ this_month }}">シフト人数グラフ</a></li>
+        <li><a href="{{ url_for('monthly_shift.monthly_shift', month=this_month) }}">📅 月別シフト（休憩とか）</a></li>
     </ul>
 
     <h2>{{ next_month }} のシフト（閲覧のみ）</h2>
@@ -55,6 +56,7 @@
         <li><a href="/view_shift/{{ account }}?month={{ next_month }}">自分の確定シフト</a></li>
         <li><a href="/view_all/{{ account }}?month={{ next_month }}">全体のシフト表</a></li>
         <li><a href="/graph/{{ account }}?month={{ next_month }}">シフト人数グラフ</a></li>
+        <li><a href="{{ url_for('monthly_shift.monthly_shift', month=next_month) }}">📅 月別シフト（休憩とか）</a></li>
     </ul>
 
     <h2>過去の履歴<br><small>(いつになったら機能するんですかね、、)</small></h2>
@@ -66,6 +68,7 @@
     <ul>
         <li><a href="{{ url_for('auth.logout') }}">🚪 ログアウト</a></li>
     </ul>
-        
+
+    
 </body>
 </html>

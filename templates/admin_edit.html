@@ -45,26 +45,78 @@
     }
     .edit-cell {
       vertical-align: top;
-      transition: all 0.2s ease;
       width: 170px;
       min-width: 170px;
       max-width: 170px;
       box-sizing: border-box;
+      position: relative;
+      /* 高さはインラインstyleで可変指定 */
     }
-    .view-mode {
-      min-height: auto;
+    .view-mode, .edit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      width: 100%;
+      height: 100%;
     }
-    .edit {
-      min-height: 60px;
+    .shift-block, .shift-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
     }
-    .edit input {
+    .edit input[type="time"] {
       width: 50px;
       height: 20px;
-      margin: 2px 0;
+      font-size: 0.9em;
+      margin: 0 2px;
+      padding: 0 2px;
     }
-    .shift-block {
-      margin-bottom: 2px;
+    .setting-btn {
+      margin-left: 8px;
+      width: 28px;
+      height: 28px;
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
     }
+    .setting-btn:hover { background: #0d47a1; }
+    .shift-line { margin-bottom: 2px; font-size: 0.9em; }
+    /* モーダル */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.3);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-bg.active { display: flex; }
+    .modal-content {
+      background: #fff;
+      border-radius: 10px;
+      padding: 24px 32px;
+      min-width: 320px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+      position: relative;
+    }
+    .modal-content h3 { margin-top: 0; }
+    .modal-shift-block { display: flex; align-items: center; margin-bottom: 8px; }
+    .modal-shift-block input[type="time"] { width: 50px; height: 20px; margin: 0 4px; font-size: 0.9em; }
+    .modal-delete-btn { margin-left: 8px; color: red; cursor: pointer; font-size: 16px; font-weight: bold; background: none; border: none; }
+    .modal-add-btn { margin-top: 8px; color: #1976d2; cursor: pointer; font-size: 1em; background: none; border: none; }
+    .modal-close-btn { position: absolute; top: 8px; right: 12px; font-size: 20px; color: #888; background: none; border: none; cursor: pointer; }
+    .modal-save-btn { margin-top: 12px; background: #1976d2; color: #fff; border: none; border-radius: 4px; padding: 6px 18px; font-size: 1em; cursor: pointer; }
     .edit-cell.error {
       background-color: #ffcccc !important;
       border: 2px solid red;
@@ -141,25 +193,30 @@
             <tr>
               <td class="sticky-left">{{ staff.name }}</td>
               {% for date in dates %}
-              <td class="edit-cell" data-name="{{ staff.name|replace(' ', '_') }}" data-date="{{ date }}">
+              <td class="edit-cell" data-name="{{ staff.name|replace(' ', '_') }}" data-date="{{ date }}"
+                style="height:{{ (shifts.get(staff.name, {}).get(date, {})|length or 1) * 32 + 16 }}px; min-height:{{ (shifts.get(staff.name, {}).get(date, {})|length or 1) * 32 + 16 }}px; max-height:{{ (shifts.get(staff.name, {}).get(date, {})|length or 1) * 32 + 16 }}px;">
                 <div class="view-mode">
-                  {% for shift in shifts.get(staff.name, {}).get(date, {}).values() %}
-                    <div class="shift-line">{{ shift[0] }}-{{ shift[1] }}</div>
-                  {% endfor %}
+                  {% set shift_dict = shifts.get(staff.name, {}).get(date, {}) %}
+                  {% if shift_dict %}
+                    {% for idx, shift in shift_dict.items() %}
+                      <div class="shift-line">{{ shift[0] }}-{{ shift[1] }}</div>
+                    {% endfor %}
+                  {% else %}
+                    <div class="shift-line">-</div>
+                  {% endif %}
                 </div>
                 <div class="edit" style="display:none;">
-                  {% set shift_items = shifts.get(staff.name, {}).get(date, {}).items() | sort %}
-                  {% for i in range(3) %}
-                    <div class="shift-block shift_{{ staff.name|replace(' ', '_') }}_{{ date }}_{{ i }}"
-                        {% if i > 0 and shift_items|length <= i %}style="display:none"{% endif %}>
-                      <input type="time" name="start_{{ staff.name|replace(' ', '_') }}_{{ date }}_{{ i }}"
-                        value="{{ shift_items[i][1][0] if shift_items|length > i else '' }}">
-                      <input type="time" name="end_{{ staff.name|replace(' ', '_') }}_{{ date }}_{{ i }}"
-                        value="{{ shift_items[i][1][1] if shift_items|length > i else '' }}">
-                      <span class="delete-btn" onclick="deleteShift(this)">×</span>
+                  {% set shift_dict = shifts.get(staff.name, {}).get(date, {}) %}
+                  {% for idx in range(3) %}
+                    {% set shift = shift_dict[idx] if shift_dict[idx] is defined else ('','') %}
+                    <div class="shift-block" style="display:{{ 'flex' if idx < (shift_dict|length or 1) else 'none' }};">
+                      <input type="time" name="start_{{ staff.name|replace(' ', '_') }}_{{ date }}_{{ idx }}" value="{{ shift[0] }}">
+                      <input type="time" name="end_{{ staff.name|replace(' ', '_') }}_{{ date }}_{{ idx }}" value="{{ shift[1] }}">
+                      {% if idx == 0 %}
+                        <button type="button" class="setting-btn" onclick="openShiftModal('{{ staff.name|replace(' ', '_') }}','{{ date }}')">⚙️</button>
+                      {% endif %}
                     </div>
                   {% endfor %}
-                  <div class="add-btn" onclick="addShift('{{ staff.name|replace(' ', '_') }}', '{{ date }}')">＋シフト追加</div>
                 </div>
               </td>
               {% endfor %}
@@ -186,6 +243,18 @@
         </tbody>
       </table>
     </form>
+  </div>
+  <!-- モーダル本体 -->
+  <div class="modal-bg" id="shiftModalBg">
+    <div class="modal-content" id="shiftModalContent">
+      <button class="modal-close-btn" onclick="closeShiftModal()">×</button>
+      <h3>シフト詳細編集</h3>
+      <div id="modalShiftBlocks">
+        <!-- JSでシフト入力欄を動的生成 -->
+      </div>
+      <button class="modal-add-btn" onclick="addModalShiftBlock()">＋シフト追加</button>
+      <button class="modal-save-btn" onclick="saveModalShifts()">保存</button>
+    </div>
   </div>
   <script>
     function toggleEditMode() {
@@ -227,6 +296,74 @@
     function deleteShift(btn) {
       const inputs = btn.parentElement.querySelectorAll('input');
       inputs.forEach(input => input.value = '');
+    }
+
+    let currentModalName = '';
+    let currentModalDate = '';
+    function openShiftModal(name, date) {
+      currentModalName = name;
+      currentModalDate = date;
+      // 既存の値を取得
+      const blocks = [];
+      for (let i = 0; i < 3; i++) {
+        const start = document.querySelector(`input[name='start_${name}_${date}_${i}']`);
+        const end = document.querySelector(`input[name='end_${name}_${date}_${i}']`);
+        if (start && end && (start.value || end.value)) {
+          blocks.push({start: start.value, end: end.value});
+        }
+      }
+      renderModalShiftBlocks(blocks);
+      document.getElementById('shiftModalBg').classList.add('active');
+    }
+    function closeShiftModal() {
+      document.getElementById('shiftModalBg').classList.remove('active');
+    }
+    function renderModalShiftBlocks(blocks) {
+      const container = document.getElementById('modalShiftBlocks');
+      container.innerHTML = '';
+      for (let i = 0; i < Math.max(blocks.length, 1); i++) {
+        const block = document.createElement('div');
+        block.className = 'modal-shift-block';
+        block.innerHTML = `<input type='time' class='modal-start' value='${blocks[i]?.start || ''}'>
+          <span style='margin:0 4px;'>-</span>
+          <input type='time' class='modal-end' value='${blocks[i]?.end || ''}'>
+          <button class='modal-delete-btn' onclick='deleteModalShiftBlock(this)'>×</button>`;
+        container.appendChild(block);
+      }
+    }
+    function addModalShiftBlock() {
+      const container = document.getElementById('modalShiftBlocks');
+      if (container.children.length >= 3) return;
+      renderModalShiftBlocks([...getModalShiftBlocks(), {start:'', end:''}]);
+    }
+    function deleteModalShiftBlock(btn) {
+      const container = document.getElementById('modalShiftBlocks');
+      const idx = Array.from(container.children).indexOf(btn.parentElement);
+      const blocks = getModalShiftBlocks();
+      blocks.splice(idx, 1);
+      renderModalShiftBlocks(blocks);
+    }
+    function getModalShiftBlocks() {
+      const container = document.getElementById('modalShiftBlocks');
+      return Array.from(container.children).map(block => ({
+        start: block.querySelector('.modal-start').value,
+        end: block.querySelector('.modal-end').value
+      }));
+    }
+    function saveModalShifts() {
+      const blocks = getModalShiftBlocks();
+      for (let i = 0; i < 3; i++) {
+        const startInput = document.querySelector(`input[name='start_${currentModalName}_${currentModalDate}_${i}']`);
+        const endInput = document.querySelector(`input[name='end_${currentModalName}_${currentModalDate}_${i}']`);
+        if (blocks[i]) {
+          if (startInput) startInput.value = blocks[i].start;
+          if (endInput) endInput.value = blocks[i].end;
+        } else {
+          if (startInput) startInput.value = '';
+          if (endInput) endInput.value = '';
+        }
+      }
+      closeShiftModal();
     }
   </script>
 </body>

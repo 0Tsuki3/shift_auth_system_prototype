@@ -1,0 +1,40 @@
+# デプロイに必要なファイル一覧
+
+## 必須ファイル
+app.py
+app.yaml
+requirements.txt
+main.py
+
+## ルートファイル
+routes/
+  - admin.py
+  - auth.py
+  - manual_memo.py
+  - manual.py
+  - shift_public.py
+  - staff.py
+  - stock.py
+
+## ユーティリティファイル
+utils/
+  - csv_utils.py
+  - date_utils.py
+  - graph_utils.py
+  - lock_utils.py
+  - staff_utils.py
+
+## テンプレートファイル
+templates/
+  - すべての.htmlファイル
+
+## 静的ファイル
+static/
+  - css/common.css
+
+## データファイル（オプション）
+data/
+  - すべてのフォルダとファイル
+
+## その他
+gcp_storage.py 

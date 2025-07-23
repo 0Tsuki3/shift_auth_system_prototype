@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ month }} シフト一覧</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 40px; }
+    th, td { border: 1px solid #aaa; padding: 4px 8px; font-size: 12px; text-align: center; }
+    th { background: #f0f0f0; }
+    h3 { margin-top: 80px; }
+    .anchor-link {
+      font-size: 10px;
+      margin-left: 8px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <h2>{{ month }} シフト一覧</h2>
+
+  <ul>
+    {% for date in date_list %}
+      <li><a href="#{{ date }}">{{ date }}</a></li>
+    {% endfor %}
+  </ul>
+
+  {% for date in date_list %}
+    <div id="{{ date }}">
+      <h3>{{ date }}（{{ ['月','火','水','木','金','土','日'][datetime.strptime(date, '%Y-%m-%d').weekday()] }}）</h3>
+      <table>
+        <tr>
+          <th>名前</th>
+          <th>開始</th>
+          <th>終了</th>
+        </tr>
+        {% for row in daily_shifts[date] %}
+          <tr>
+            <td>{{ row.last_name }} {{ row.first_name }}</td>
+            <td>{{ row.start }}</td>
+            <td>{{ row.end }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="3">シフトなし</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+  {% endfor %}
+</body>
+</html>

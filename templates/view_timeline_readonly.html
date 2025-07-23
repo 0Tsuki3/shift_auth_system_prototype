@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ month }} の全日シフト（表示専用）</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      font-size: 12px;
+      margin: 0;
+      padding: 0;
+    }
+
+    h2 {
+      padding: 16px;
+      margin: 0;
+    }
+
+    .day-block {
+      margin-bottom: 24px;
+      border-top: 1px solid #ccc;
+      padding: 8px 16px;
+    }
+
+    .day-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .staff-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+
+    .staff-name {
+      width: 120px;
+      font-weight: bold;
+    }
+
+    .bar-area {
+      position: relative;
+      width: calc(34 * 15px);
+      height: 20px;
+      background: #f0f0f0;
+    }
+
+    .bar {
+      position: absolute;
+      height: 100%;
+      border-radius: 2px;
+    }
+
+    .shift { background-color: #4a90e2; }
+    .break { background-color: #f8e71c; }
+    .desk  { background-color: #7ed321; }
+    .other { background-color: #f5a623; }
+
+    /* アンカーで飛んだときのスクロール位置調整 */
+    .day-block:target {
+      scroll-margin-top: 80px;
+      outline: 2px solid #4a90e2;
+    }
+
+    .jump-menu {
+      padding: 8px 16px;
+      background: #f8f8f8;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .jump-menu a {
+      margin-right: 10px;
+      font-size: 13px;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>{{ month }} の全日シフト（表示専用）</h2>
+
+  <!-- 日付ジャンプメニュー -->
+  <div class="jump-menu">
+    {% for day in all_data %}
+      <a href="#{{ day.date }}">{{ day.date }}</a>
+    {% endfor %}
+  </div>
+
+  {% for day in all_data %}
+    <div class="day-block" id="{{ day.date }}">
+      <div class="day-title">{{ day.date }}</div>
+
+      {% for segment in day.schedule %}
+        <div class="staff-row">
+          <div class="staff-name">{{ segment.start }} - {{ segment.end }}</div>
+          <div class="bar-area">
+            {# 稼働中 #}
+            {% if segment.active %}
+              <span class="bar shift">稼働: {{ segment.active|join(', ') }}</span>
+            {% endif %}
+            {# 休憩 #}
+            {% if segment.break %}
+              <span class="bar break">休憩: {{ segment.break|join(', ') }}</span>
+            {% endif %}
+            {# デスク #}
+            {% if segment.desk %}
+              <span class="bar desk">デスク: {{ segment.desk|join(', ') }}</span>
+            {% endif %}
+            {# その他 #}
+            {% if segment.other %}
+              <span class="bar other">その他: {{ segment.other|join(', ') }}</span>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</body>
+</html>

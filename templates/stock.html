@@ -127,7 +127,13 @@
     </style>
 </head>
 <body>
-    <a href="{{ home_url }}" class="home-btn">🏠 ホームに戻る</a>
+    {% if account == 'admin' %}
+      <a href="{{ url_for('admin.admin_home') }}" class="home-btn">🏠 ホームに戻る</a>
+    {% elif account %}
+      <a href="{{ url_for('staff.staff_home', account=account) }}" class="home-btn">🏠 ホームに戻る</a>
+    {% else %}
+      <a href="{{ url_for('auth.public_home') }}" class="home-btn">🏠 ホームに戻る</a>
+    {% endif %}
     <h1>ドリンク管理</h1>
     <div class="stock-container" id="stock-container">
     {% for stock in stocks %}

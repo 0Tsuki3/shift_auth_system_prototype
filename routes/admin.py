@@ -15,6 +15,11 @@ from utils.csv_utils import (
 from utils.date_utils import generate_date_label_list, generate_short_date_labels
 from utils.graph_utils import calculate_daily_labor_cost, calculate_daily_work_hours  # ← 追加
 from flask import send_file
+from utils.csv_handler import load_exclude_data  # ← これを追記
+from utils.date_utils import get_current_month
+from utils.graph_utils import generate_time_segments, collect_events_with_details  # これも必要
+from utils.csv_utils import load_shift_dicts  # 新しい関数だけインポート
+from utils.data_utils import load_excludes_with_staff
 
 
 
@@ -25,7 +30,9 @@ staff_list = sort_staff_list(load_staff())
 def admin_home():
     if session.get("role") != "admin":
         return redirect(url_for("auth.login"))
-    return render_template("admin_home.html", name=session["name"])
+    from datetime import datetime
+    now_month = datetime.now().strftime("%Y-%m")
+    return render_template("admin_home.html", name=session["name"], now_month=now_month)
 
 @admin_blueprint.route("/admin/edit", methods=["GET", "POST"])
 def admin_edit():
@@ -485,3 +492,142 @@ def graph_month_select():
                            this_month=this_month,
                            prev_month=prev_month,
                            next_month=next_month)
+
+
+@admin_blueprint.route("/admin/segment_preview")
+def segment_preview():
+    # 日付をクエリから取得、なければ今日の日付（YYYY-MM-DD 形式）
+    month = request.args.get("month", get_current_month())
+    date_str = request.args.get("date", None)
+
+    shift_data_raw = load_shifts(month)
+    staff_list = load_staff()  # ← 追加！
+    shift_data = load_shift_dicts(month)  # ← これに変更
+
+    exclude_data = load_excludes_with_staff(month, staff_list)
+    events = collect_events_with_details(date_str, shift_data, staff_list)  # ← 修正
+
+    segments = generate_time_segments(events)
+
+    print("=== DEBUG shift_data ===")
+    for i, row in enumerate(shift_data[:5]):
+        print(f"Row {i}: {row} ({type(row)})")
+
+    print("=== shift_data sample ===")
+    for i, s in enumerate(shift_data[:3]):
+        print(f"{i}: {s} ({type(s)})")
+
+    return render_template("segment_preview.html", date=date_str, segments=segments)
+
+
+
+
+@admin_blueprint.route("/view_all")
+def view_all_shifts():
+    from utils.csv_utils import load_csv, get_path, generate_date_list
+    from datetime import datetime
+    import calendar
+
+    month = request.args.get("month", datetime.today().strftime("%Y-%m"))
+    shift_data = load_csv(get_path("shift", month))
+    staff_data = load_csv("data/staff.csv")
+    date_list = generate_date_list(month)
+
+    # 各日付のシフトを分けて整理
+    daily_shifts = {}
+    for date in date_list:
+        daily_shifts[date] = [row for row in shift_data if row["date"] == date]
+
+    return render_template("view_all.html",
+                           month=month,
+                           staff_data=staff_data,
+                           daily_shifts=daily_shifts,
+                           date_list=date_list,
+                           datetime=datetime)
+
+
+
+@admin_blueprint.route("/view_all_shift_chart")
+def view_all_shift_chart():
+    from utils.csv_utils import load_csv, get_path, generate_date_list
+    from utils.shift_utils import load_shift_dicts
+    from datetime import datetime
+
+    month = request.args.get("month", datetime.today().strftime("%Y-%m"))
+
+    shift_data = load_shift_dicts(month)  # ← 修正済み
+    exclude_data = load_csv(get_path("exclude_time", month))
+    staff_data = load_csv("data/staff.csv")
+    date_list = generate_date_list(month)
+
+    all_schedules = {}
+
+    for date in date_list:
+        schedule = {}
+        shift_rows = shift_data.get(date, [])
+        for staff in staff_data:
+            full_name = staff["last_name"] + staff["first_name"]
+            shifts = [
+                (row["start"], row["end"])
+                for row in shift_rows
+                if row["last_name"] + row["first_name"] == full_name
+            ]
+            excludes = [
+                {
+                    "start": row["start"],
+                    "end": row["end"],
+                    "category": row["category"]
+                }
+                for row in exclude_data
+                if row["date"] == date and row["name"].replace(" ", "") == full_name
+            ]
+            schedule[full_name] = {"shift": shifts, "exclude": excludes}
+        all_schedules[date] = schedule
+
+    return render_template("view_all_shift_chart.html", month=month, schedules=all_schedules)
+
+
+@admin_blueprint.route("/view_all_segment_preview")
+def view_all_segment_preview():
+    from utils.csv_utils import generate_date_list
+    from datetime import datetime
+
+    month = request.args.get("month", datetime.today().strftime("%Y-%m"))
+
+    staff_list = load_staff()
+    shift_data = load_shift_dicts(month)
+    exclude_data = load_excludes_with_staff(month, staff_list)
+    date_list = generate_date_list(month)
+
+    print("=== DEBUG shift_data ===")
+    for i, row in enumerate(shift_data[:5]):
+        print(f"Row {i}: {row} ({type(row)})")
+
+    all_segments = []
+    for date in date_list:
+        daily_shifts = [row for row in shift_data if row["date"] == date]
+        print(f"=== {date} の daily_shifts ===")
+        for i, s in enumerate(daily_shifts):
+            print(f"{i}: {s} ({type(s)})")
+
+        # 安全なコピー（deepcopy は不要）
+        safe_daily_shifts = list(daily_shifts)
+
+        events = collect_events_with_details(safe_daily_shifts, date, staff_list)
+        segments = generate_time_segments(events)
+        all_segments.append({"date": date, "segments": segments})
+
+    return render_template("view_all_segment_preview.html",
+                           month=month,
+                           all_segments=all_segments)
+
+@admin_blueprint.route("/admin/monthly_shift_select")
+def monthly_shift_select():
+    from datetime import datetime, timedelta
+    today = datetime.today()
+    month_list = [
+        (today - timedelta(days=30)).strftime("%Y-%m"),
+        today.strftime("%Y-%m"),
+        (today + timedelta(days=30)).strftime("%Y-%m"),
+    ]
+    return render_template("monthly_shift_select.html", month_list=month_list)
