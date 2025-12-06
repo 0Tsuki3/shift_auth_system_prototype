@@ -1,1 +1,42 @@
-google-cloud-sdk/ 
+# Google Cloud SDK
+google-cloud-sdk/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite3
