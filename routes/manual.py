@@ -4,7 +4,7 @@ import shutil
 import pandas as pd
 from markdown import markdown
 from functools import wraps
-from flask import safe_join  # 上で import を追加
+from werkzeug.security import safe_join  # Flask 3.x では werkzeug から import
 
 
 
