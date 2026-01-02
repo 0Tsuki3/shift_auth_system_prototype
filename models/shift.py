@@ -22,13 +22,15 @@ class Shift:
     @dataclass: Pythonの便利機能。自動的に__init__などを作ってくれる
     
     属性（このクラスが持つデータ）:
+        id: シフトID（一意な識別子、例: 1, 2, 3...）
         account: アカウントID（例: "nakamura"）
         date: 日付（例: 2025-09-07）
         index: 同じ日に複数シフトがある時の番号（0, 1, 2...）
         start: 開始時刻（例: 09:00）
         end: 終了時刻（例: 15:00）
     """
-    account: str        # アカウントID（スタッフを一意に識別）
+    id: int             # シフトID（このシフトを一意に識別）
+    account: str        # アカウントID（スタッフを参照）
     date: date          # 日付
     index: int          # シフト番号（同じ日に複数ある時用）
     start: time         # 開始時刻
@@ -59,6 +61,7 @@ class Shift:
         
         Returns:
             {
+                'id': 1,
                 'account': 'nakamura',
                 'date': '2025-09-07',
                 'index': 0,
@@ -67,6 +70,7 @@ class Shift:
             }
         """
         return {
+            'id': self.id,
             'account': self.account,
             'date': self.date.strftime('%Y-%m-%d'),  # 日付を文字列に
             'index': self.index,
@@ -83,15 +87,18 @@ class Shift:
         
         Args:
             data: CSVから読んだ1行分のデータ
-                  {'account': 'nakamura', 'date': '2025-09-07', ...}
+                  {'id': 1, 'account': 'nakamura', 'date': '2025-09-07', ...}
         
         Returns:
             Shiftオブジェクト
         
         Note:
             旧形式（last_name, first_nameを持つ）にも対応
-            その場合はaccountフィールドを優先使用
+            idが無い場合は0を設定（後で採番）
         """
+        # IDの取得（旧データの場合は0）
+        shift_id = int(data.get('id', 0))
+        
         # accountが無い場合は旧形式として扱う（後方互換性）
         account = data.get('account')
         if not account and 'last_name' in data and 'first_name' in data:
@@ -100,6 +107,7 @@ class Shift:
             account = f"{data['last_name']}_{data['first_name']}"
         
         return cls(
+            id=shift_id,
             account=account,
             date=datetime.strptime(data['date'], '%Y-%m-%d').date(),  # 文字列→日付
             index=int(data['index']),

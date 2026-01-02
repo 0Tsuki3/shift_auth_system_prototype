@@ -4,6 +4,11 @@
 
 このファイルは「認証情報1件分のデータ」がどういう形をしているかを定義します。
 例: 「adminアカウント、パスワードハッシュ、管理者権限」という情報を1つのオブジェクトとして扱う
+
+設計方針:
+- 名前や時給などの個人情報はStaffモデルに集約
+- 認証に必要な情報（account, password, role）のみ保持
+- accountでStaffを参照する
 """
 
 from dataclasses import dataclass
@@ -15,29 +20,15 @@ class Auth:
     認証情報1件分のデータ構造
     
     属性:
+        id: 認証ID（一意な識別子、例: 1, 2, 3...）
         account: アカウント名（ログインID、例: "admin"）
-        last_name: 姓（例: "最強"）
-        first_name: 名（例: "管理者"）
-        role: 権限（"admin" または "staff"）
-        hourly_wage: 時給（例: 1000）
         password: パスワードハッシュ（暗号化されたパスワード）
+        role: 権限（"admin" または "staff"）
     """
+    id: int             # 認証ID（この認証情報を一意に識別）
     account: str        # アカウント名
-    last_name: str      # 姓
-    first_name: str     # 名
-    role: str           # 権限（admin or staff）
-    hourly_wage: int    # 時給
     password: str       # パスワードハッシュ（暗号化済み）
-    
-    @property
-    def full_name(self) -> str:
-        """
-        フルネームを返す
-        
-        Returns:
-            "姓 名" の形式（例: "最強 管理者"）
-        """
-        return f"{self.last_name} {self.first_name}"
+    role: str           # 権限（admin or staff）
     
     @property
     def is_admin(self) -> bool:
@@ -55,21 +46,17 @@ class Auth:
         
         Returns:
             {
+                'id': 1,
                 'account': 'admin',
-                'last_name': '最強',
-                'first_name': '管理者',
-                'role': 'admin',
-                'hourly_wage': 0,
-                'password': 'pbkdf2:sha256:...'
+                'password': 'pbkdf2:sha256:...',
+                'role': 'admin'
             }
         """
         return {
+            'id': self.id,
             'account': self.account,
-            'last_name': self.last_name,
-            'first_name': self.first_name,
-            'role': self.role,
-            'hourly_wage': self.hourly_wage,
-            'password': self.password
+            'password': self.password,
+            'role': self.role
         }
     
     @classmethod
@@ -82,13 +69,15 @@ class Auth:
         
         Returns:
             Authオブジェクト
+        
+        Note:
+            旧形式（last_name, first_name, hourly_wageを持つ）にも対応
+            idが無い場合は0を設定（後で採番）
         """
         return cls(
+            id=int(data.get('id', 0)),
             account=data['account'],
-            last_name=data['last_name'],
-            first_name=data['first_name'],
-            role=data['role'],
-            hourly_wage=int(data.get('hourly_wage', 0)),  # 数値に変換
-            password=data['password']
+            password=data['password'],
+            role=data['role']
         )
 
