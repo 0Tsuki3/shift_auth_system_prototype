@@ -25,14 +25,15 @@ class Shift:
         id: シフトID（一意な識別子、例: 1, 2, 3...）
         account: アカウントID（例: "nakamura"）
         date: 日付（例: 2025-09-07）
-        index: 同じ日に複数シフトがある時の番号（0, 1, 2...）
         start: 開始時刻（例: 09:00）
         end: 終了時刻（例: 15:00）
+    
+    Note:
+        同じ日に複数シフトがある場合は、start時刻でソートすることで順序を決定
     """
     id: int             # シフトID（このシフトを一意に識別）
     account: str        # アカウントID（スタッフを参照）
     date: date          # 日付
-    index: int          # シフト番号（同じ日に複数ある時用）
     start: time         # 開始時刻
     end: time           # 終了時刻
     
@@ -64,7 +65,6 @@ class Shift:
                 'id': 1,
                 'account': 'nakamura',
                 'date': '2025-09-07',
-                'index': 0,
                 'start': '09:00',
                 'end': '15:00'
             }
@@ -73,7 +73,6 @@ class Shift:
             'id': self.id,
             'account': self.account,
             'date': self.date.strftime('%Y-%m-%d'),  # 日付を文字列に
-            'index': self.index,
             'start': self.start.strftime('%H:%M'),   # 時刻を文字列に
             'end': self.end.strftime('%H:%M')
         }
@@ -93,8 +92,9 @@ class Shift:
             Shiftオブジェクト
         
         Note:
-            旧形式（last_name, first_nameを持つ）にも対応
+            旧形式（last_name, first_name, indexを持つ）にも対応
             idが無い場合は0を設定（後で採番）
+            indexは読み込むが無視（後方互換性のため）
         """
         # IDの取得（旧データの場合は0）
         shift_id = int(data.get('id', 0))
@@ -110,8 +110,8 @@ class Shift:
             id=shift_id,
             account=account,
             date=datetime.strptime(data['date'], '%Y-%m-%d').date(),  # 文字列→日付
-            index=int(data['index']),
             start=datetime.strptime(data['start'], '%H:%M').time(),   # 文字列→時刻
             end=datetime.strptime(data['end'], '%H:%M').time()
+            # indexは読み込まない（旧データにあっても無視）
         )
 
