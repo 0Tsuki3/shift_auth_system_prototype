@@ -20,21 +20,21 @@ class Staff:
         account: アカウント名（ログインID、例: "nakamura"）
         last_name: 姓（例: "中村"）
         first_name: 名（例: "元"）
-        hourly_wage: 時給（例: 1000）
+        hourly_wage: 時給（例: 1000）※セキュリティはService/Routes層で制御
         position: ポジション（例: "kitchen", "hall"）
-        experience: 経験年数（例: "3"）
+        hired_date: 勤務開始日（例: "2025-01-01"）
         type: 雇用形態（例: "正社員", "アルバイト"）
-        shift_pref: シフト希望（例: "平日のみ"）
+        memo: メモ（自由記述、将来的な拡張用）
     """
-    id: int                         # スタッフID（このスタッフを一意に識別）
-    account: str                    # アカウント名（ログインID）
-    last_name: str                  # 姓
-    first_name: str                 # 名
-    hourly_wage: int = 0            # 時給（デフォルト0）
-    position: Optional[str] = None  # ポジション（任意項目）
-    experience: Optional[str] = None # 経験年数（任意項目）
-    type: Optional[str] = None      # 雇用形態（任意項目）
-    shift_pref: Optional[str] = None # シフト希望（任意項目）
+    id: int                          # スタッフID（このスタッフを一意に識別）
+    account: str                     # アカウント名（ログインID）
+    last_name: str                   # 姓
+    first_name: str                  # 名
+    hourly_wage: int = 0             # 時給（デフォルト0）
+    position: Optional[str] = None   # ポジション（任意項目）
+    hired_date: Optional[str] = None # 勤務開始日（任意項目）
+    type: Optional[str] = None       # 雇用形態（任意項目）
+    memo: Optional[str] = None       # メモ（任意項目、自由記述）
     
     @property
     def full_name(self) -> str:
@@ -58,7 +58,9 @@ class Staff:
                 'first_name': '元',
                 'hourly_wage': 1000,
                 'position': 'kitchen',
-                ...
+                'hired_date': '2025-01-01',
+                'type': 'アルバイト',
+                'memo': '...'
             }
         """
         return {
@@ -67,10 +69,10 @@ class Staff:
             'last_name': self.last_name,
             'first_name': self.first_name,
             'hourly_wage': self.hourly_wage,
-            'position': self.position or '',      # Noneの場合は空文字
-            'experience': self.experience or '',
+            'position': self.position or '',       # Noneの場合は空文字
+            'hired_date': self.hired_date or '',   # Noneの場合は空文字
             'type': self.type or '',
-            'shift_pref': self.shift_pref or ''
+            'memo': self.memo or ''
         }
     
     @classmethod
@@ -86,6 +88,7 @@ class Staff:
         
         Note:
             idが無い場合は0を設定（後で採番）
+            旧フィールド（experience, shift_pref）も読めるが無視
         """
         return cls(
             id=int(data.get('id', 0)),
@@ -93,9 +96,9 @@ class Staff:
             last_name=data['last_name'],
             first_name=data['first_name'],
             hourly_wage=int(data.get('hourly_wage', 0)),
-            position=data.get('position') or None,      # 空文字の場合はNone
-            experience=data.get('experience') or None,
+            position=data.get('position') or None,       # 空文字の場合はNone
+            hired_date=data.get('hired_date') or None,   # 新フィールド
             type=data.get('type') or None,
-            shift_pref=data.get('shift_pref') or None
+            memo=data.get('memo') or None                # 新フィールド
         )
 
