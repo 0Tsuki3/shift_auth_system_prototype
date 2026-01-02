@@ -1,10 +1,45 @@
 # Git 使い方ガイド（後で戻れるように）
 
-## 基本概念
+## 🚀 よく使うコマンド（これだけ覚えればOK）
 
+### 毎回使うコマンド
+
+```bash
+# 1. 状態確認
+git status
+
+# 2. 変更を保存（commit）
+git add .
+git commit -m "feat: Models層を実装"
+
+# 3. リモートに送信（push）
+git push origin main
 ```
-作業ディレクトリ → ステージング → コミット → リモート
-    (編集)      →  (git add)  → (git commit) → (git push)
+
+### 振り返り用コマンド
+
+```bash
+# コミット履歴を見る（シンプル）
+git log --oneline
+
+# コミット履歴を見る（グラフ付き）
+git log --oneline --graph --all
+
+# 最近5件だけ見る
+git log --oneline -5
+```
+
+### 戻るコマンド
+
+```bash
+# 特定のコミットに戻る（一時的に確認）
+git checkout abc1234
+
+# mainに戻る
+git checkout main
+
+# 完全に戻す（⚠️変更破棄）
+git reset --hard abc1234
 ```
 
 ---
