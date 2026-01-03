@@ -60,14 +60,19 @@ class ShiftRepository:
         with open(file_path, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                # 空行や不完全な行をスキップ
-                if row.get('account') and row.get('start') and row.get('end'):
+                # 必須フィールドの存在チェック（全て必須）
+                required_fields = ['id', 'account', 'date', 'start', 'end']
+                if all(row.get(field) for field in required_fields):
                     try:
                         shift = Shift.from_dict(row)
                         shifts.append(shift)
                     except (ValueError, KeyError) as e:
                         print(f"Warning: シフトデータの読み込みエラー: {row}, {e}")
                         continue
+                else:
+                    # 必須フィールドが欠けている場合は警告
+                    missing = [f for f in required_fields if not row.get(f)]
+                    print(f"Warning: 必須フィールドが欠けています: {missing}, 行: {row}")
         
         return shifts
     

@@ -46,13 +46,19 @@ class AuthRepository:
         with open(self.auth_file, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                if row.get('account'):  # 空行をスキップ
+                # 必須フィールドの存在チェック
+                required_fields = ['id', 'account', 'password', 'role']
+                if all(row.get(field) for field in required_fields):
                     try:
                         auth = Auth.from_dict(row)
                         auth_list.append(auth)
                     except (ValueError, KeyError) as e:
                         print(f"Warning: 認証データの読み込みエラー: {row}, {e}")
                         continue
+                else:
+                    # 必須フィールドが欠けている場合は警告
+                    missing = [f for f in required_fields if not row.get(f)]
+                    print(f"Warning: 必須フィールドが欠けています: {missing}, 行: {row}")
         
         return auth_list
     
