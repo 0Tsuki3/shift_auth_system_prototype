@@ -1,2 +1,3 @@
 id,account,last_name,first_name,hourly_wage,position,hired_date,type,memo
-1,test_user,テスト,太郎,1200,kitchen,2025-01-01,,
+1,admin,管理,太郎,1500,manager,2024-01-01,正社員,管理者アカウント
+2,test_staff,テスト,花子,1200,hall,2024-04-01,アルバイト,テストスタッフ
