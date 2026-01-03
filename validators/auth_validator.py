@@ -63,7 +63,7 @@ class AuthValidator:
     
     def validate_password(self, password: str) -> Tuple[bool, List[str]]:
         """
-        パスワードの強度チェック（平文パスワード用）
+        パスワードの妥当性チェック（平文パスワード用）
         
         Args:
             password: 平文パスワード
@@ -72,23 +72,16 @@ class AuthValidator:
             (is_valid, errors)
         
         チェック内容:
-            - 8文字以上
-            - 英字を含む
-            - 数字を含む
+            - 空欄でないこと（必須）
         
         Note:
             新規登録やパスワード変更時に使用
+            強度チェックは行わない（ユーザーに任せる）
         """
         errors = []
         
-        if len(password) < 8:
-            errors.append("パスワードは8文字以上にしてください")
-        
-        if not any(c.isalpha() for c in password):
-            errors.append("パスワードには英字を含めてください")
-        
-        if not any(c.isdigit() for c in password):
-            errors.append("パスワードには数字を含めてください")
+        if not password or len(password) == 0:
+            errors.append("パスワードは必須です")
         
         return len(errors) == 0, errors
 

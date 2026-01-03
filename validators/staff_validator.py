@@ -38,7 +38,7 @@ class StaffValidator:
             - 必須項目（account, last_name, first_name）
             - アカウント名の長さ（3文字以上）
             - アカウント名の文字種（英数字とアンダースコアのみ）
-            - 時給の範囲（0以上、10000円以下）
+            - 時給の下限（0以上のみ、上限なし）
             - 入社日の形式（YYYY-MM-DD）
         """
         errors = []
@@ -60,9 +60,6 @@ class StaffValidator:
         # 2. 時給のチェック
         if staff.hourly_wage < 0:
             errors.append("時給は0以上にしてください")
-        
-        if staff.hourly_wage > 10000:
-            errors.append("時給は10000円以下にしてください")
         
         # 3. 入社日の形式チェック（任意項目だがある場合はチェック）
         if staff.hired_date:
@@ -89,4 +86,5 @@ class StaffValidator:
         # 英数字とアンダースコアのみ許可
         pattern = r'^[a-zA-Z0-9_]+$'
         return bool(re.match(pattern, account))
+
 
