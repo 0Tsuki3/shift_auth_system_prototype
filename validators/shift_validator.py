@@ -37,8 +37,7 @@ class ShiftValidator:
         チェック内容:
             - 必須項目（account, date, start, end）
             - 時刻の論理チェック（start < end）
-            - 勤務時間の範囲（30分～12時間）
-            - 日付の範囲（過去1年～未来1年）
+            - 勤務時間の最小値（1分以上）
         """
         errors = []
         
@@ -67,27 +66,13 @@ class ShiftValidator:
         try:
             duration = shift.duration_hours()
             
-            if duration < 0.5:
-                errors.append("勤務時間は30分以上にしてください")
-            
-            if duration > 12:
-                errors.append("勤務時間は12時間以内にしてください")
+            # 最低1分（1/60時間 = 0.01666...時間）以上
+            min_duration = 1 / 60  # 1分
+            if duration < min_duration:
+                errors.append("勤務時間は1分以上にしてください")
         
         except Exception as e:
             errors.append(f"勤務時間の計算エラー: {str(e)}")
-        
-        # 4. 日付の範囲チェック
-        today = date.today()
-        
-        # 過去1年より前はNG
-        one_year_ago = date(today.year - 1, today.month, today.day)
-        if shift.date < one_year_ago:
-            errors.append("1年以上前の日付は登録できません")
-        
-        # 未来1年より先はNG
-        one_year_later = date(today.year + 1, today.month, today.day)
-        if shift.date > one_year_later:
-            errors.append("1年以上先の日付は登録できません")
         
         # 結果を返す
         return len(errors) == 0, errors
