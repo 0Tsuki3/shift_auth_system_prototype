@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}シフト一覧 {{ month }} - 管理者{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>シフト一覧 - {{ month }}</h2>
+    
+    <div style="margin: 1.5rem 0;">
+        <a href="{{ url_for('admin.admin_home') }}" class="btn btn-secondary">← 戻る</a>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📅 カレンダー表示</h3>
+    
+    {% if calendar_data %}
+        <div style="margin-top: 1.5rem;">
+            {% for date_str, shifts in calendar_data.items() %}
+                <div style="border: 1px solid #eee; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+                    <h4 style="color: #667eea; margin-bottom: 0.5rem;">
+                        {{ date_str }}
+                        <span style="font-size: 0.9rem; color: #999; font-weight: normal;">
+                            ({{ shifts|length }}件)
+                        </span>
+                    </h4>
+                    
+                    {% if shifts %}
+                        <div style="display: grid; gap: 0.5rem; margin-top: 1rem;">
+                            {% for shift in shifts %}
+                                <div style="background: #f8f9fa; padding: 0.75rem; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong>{{ shift.full_name }}</strong>
+                                        <span style="color: #666; margin-left: 1rem;">
+                                            {{ shift.start }} - {{ shift.end }}
+                                        </span>
+                                        <span style="color: #999; margin-left: 0.5rem;">
+                                            ({{ "%.1f"|format(shift.duration_hours) }}h)
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p style="color: #999; margin-top: 0.5rem;">シフトなし</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color: #999; margin-top: 1rem;">シフトデータがありません。</p>
+    {% endif %}
+</div>
+{% endblock %}
+

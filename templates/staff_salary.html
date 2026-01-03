@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}給料明細 {{ month }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>💰 給料明細 - {{ month }}</h2>
+    
+    <div style="margin: 1.5rem 0;">
+        <a href="{{ url_for('staff.staff_home') }}" class="btn btn-secondary">← ホームに戻る</a>
+        <a href="{{ url_for('staff.view_my_shifts', month=month) }}" class="btn btn-primary" style="margin-left: 1rem;">
+            📅 シフト一覧を見る
+        </a>
+    </div>
+</div>
+
+{% if salary_info %}
+    <div class="card">
+        <h3>サマリー</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+            <div style="text-align: center; padding: 1.5rem; background: #f8f9fa; border-radius: 4px;">
+                <div style="color: #999; margin-bottom: 0.5rem;">時給</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">
+                    ¥{{ staff.hourly_wage }}
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 1.5rem; background: #f8f9fa; border-radius: 4px;">
+                <div style="color: #999; margin-bottom: 0.5rem;">勤務時間</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">
+                    {{ "%.1f"|format(salary_info.total_hours) }}h
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 4px; color: white;">
+                <div style="margin-bottom: 0.5rem;">今月の給料</div>
+                <div style="font-size: 2rem; font-weight: bold;">
+                    ¥{{ "{:,}".format(salary_info.total_salary) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>シフト詳細</h3>
+        
+        {% if shifts %}
+            <table style="margin-top: 1rem;">
+                <thead>
+                    <tr>
+                        <th>日付</th>
+                        <th>開始</th>
+                        <th>終了</th>
+                        <th>勤務時間</th>
+                        <th>金額</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shift in shifts %}
+                        <tr>
+                            <td>{{ shift.date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ shift.start.strftime('%H:%M') }}</td>
+                            <td>{{ shift.end.strftime('%H:%M') }}</td>
+                            <td>{{ "%.1f"|format(shift.get_duration_hours()) }}h</td>
+                            <td>¥{{ "{:,}".format((shift.get_duration_hours() * staff.hourly_wage)|int) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="color: #999; margin-top: 1rem;">シフトがありません。</p>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="card">
+        <p style="color: #999;">給料情報を取得できませんでした。</p>
+    </div>
+{% endif %}
+{% endblock %}
+

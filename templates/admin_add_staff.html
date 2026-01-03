@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}スタッフ追加 - 管理者{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>スタッフを追加</h2>
+    
+    <div style="margin: 1.5rem 0;">
+        <a href="{{ url_for('admin.staff_list') }}" class="btn btn-secondary">← スタッフ一覧に戻る</a>
+    </div>
+</div>
+
+<div class="card">
+    <form method="POST" action="{{ url_for('admin.add_staff') }}">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            <div class="form-group">
+                <label for="account">アカウント *</label>
+                <input type="text" id="account" name="account" required>
+                <small style="color: #999;">半角英数字とアンダースコア、3文字以上</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">パスワード *</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="last_name">姓 *</label>
+                <input type="text" id="last_name" name="last_name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="first_name">名 *</label>
+                <input type="text" id="first_name" name="first_name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="hourly_wage">時給 *</label>
+                <input type="number" id="hourly_wage" name="hourly_wage" min="0" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="position">役職 *</label>
+                <select id="position" name="position" required>
+                    <option value="">選択してください</option>
+                    <option value="kitchen">キッチン</option>
+                    <option value="hall">ホール</option>
+                    <option value="manager">マネージャー</option>
+                    <option value="other">その他</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="role">権限 *</label>
+                <select id="role" name="role" required>
+                    <option value="staff" selected>スタッフ</option>
+                    <option value="admin">管理者</option>
+                </select>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">スタッフを追加</button>
+            <a href="{{ url_for('admin.staff_list') }}" class="btn btn-secondary" style="margin-left: 1rem;">
+                キャンセル
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

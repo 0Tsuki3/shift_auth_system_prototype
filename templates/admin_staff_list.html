@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}スタッフ一覧 - 管理者{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>スタッフ一覧</h2>
+    
+    <div style="margin: 1.5rem 0;">
+        <a href="{{ url_for('admin.admin_home') }}" class="btn btn-secondary">← 戻る</a>
+        <a href="{{ url_for('admin.add_staff') }}" class="btn btn-primary" style="margin-left: 1rem;">
+            + スタッフを追加
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    {% if staff_list %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>アカウント</th>
+                    <th>名前</th>
+                    <th>役職</th>
+                    <th>時給</th>
+                    <th>雇用形態</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for staff in staff_list %}
+                    <tr>
+                        <td>{{ staff.id }}</td>
+                        <td>{{ staff.account }}</td>
+                        <td>{{ staff.last_name }} {{ staff.first_name }}</td>
+                        <td>{{ staff.position }}</td>
+                        <td>¥{{ staff.hourly_wage }}</td>
+                        <td>{{ staff.type }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color: #999;">スタッフが登録されていません。</p>
+    {% endif %}
+</div>
+{% endblock %}
+
