@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}スタッフホーム - シフト管理システム{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>スタッフホーム</h2>
+    <p style="color: #666;">{{ now_month }} のあなたのシフト</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+    <div class="card" style="text-align: center;">
+        <h3 style="color: #667eea;">📅 今月のシフト</h3>
+        <p style="font-size: 2.5rem; font-weight: bold; color: #667eea; margin: 1rem 0;">
+            {{ total_shifts or 0 }}
+        </p>
+        <p style="color: #666;">件</p>
+    </div>
+    
+    <div class="card" style="text-align: center;">
+        <h3 style="color: #667eea;">⏰ 合計勤務時間</h3>
+        <p style="font-size: 2.5rem; font-weight: bold; color: #667eea; margin: 1rem 0;">
+            {{ "%.1f"|format(total_hours or 0) }}
+        </p>
+        <p style="color: #666;">時間</p>
+    </div>
+</div>
+
+<div class="card">
+    <h3>クイックアクション</h3>
+    <div style="margin-top: 1.5rem;">
+        <a href="{{ url_for('staff.view_my_shifts', month=now_month) }}" class="btn btn-primary" style="margin-right: 1rem;">
+            今月のシフトを見る
+        </a>
+        <a href="{{ url_for('staff.view_salary', month=now_month) }}" class="btn btn-secondary">
+            給料明細を見る
+        </a>
+    </div>
+</div>
+{% endblock %}
+

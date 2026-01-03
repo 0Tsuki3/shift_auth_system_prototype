@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}404 - ページが見つかりません{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center; margin-top: 3rem;">
+    <h2 style="font-size: 4rem; color: #667eea;">404</h2>
+    <h3>ページが見つかりません</h3>
+    <p style="color: #666; margin: 1.5rem 0;">
+        お探しのページは存在しないか、移動した可能性があります。
+    </p>
+    <a href="{{ url_for('auth.public_home') }}" class="btn btn-primary">
+        ホームに戻る
+    </a>
+</div>
+{% endblock %}
+
