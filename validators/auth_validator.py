@@ -26,6 +26,7 @@ class AuthValidator:
     
     def validate(self, auth: Auth) -> Tuple[bool, List[str]]:
         """
+        
         認証データの妥当性チェック
         
         Args:
