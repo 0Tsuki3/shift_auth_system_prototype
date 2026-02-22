@@ -64,8 +64,25 @@ def view_shifts(month):
         shifts = shift_service.get_shifts_by_month(month)
         staff_list = staff_service.get_all_staff()
         
+        # スタッフ情報をマッピング（account → Staff）
+        staff_dict = {staff.account: staff for staff in staff_list}
+        
         # カレンダー形式に整形
         calendar_data = shift_presenter.format_for_calendar(shifts, month)
+        
+        # カレンダーデータにスタッフ情報を追加
+        for date_str, day_shifts in calendar_data.items():
+            for shift_data in day_shifts:
+                account = shift_data['account']
+                if account in staff_dict:
+                    staff = staff_dict[account]
+                    shift_data['full_name'] = staff.full_name
+                    shift_data['position'] = staff.position
+                else:
+                    shift_data['full_name'] = account  # スタッフが見つからない場合はアカウント名
+                    shift_data['position'] = '不明'
+                # duration_hoursはhoursに既に含まれているので名前を統一
+                shift_data['duration_hours'] = shift_data['hours']
         
         return render_template(
             'admin_shifts_calendar.html',
