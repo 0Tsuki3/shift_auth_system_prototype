@@ -18,7 +18,7 @@
 - [x] 給料計算・明細表示
 
 ### ⚠️ 未実装の重要機能
-- [ ] シフト希望提出（スタッフ側）
+- [x] **シフト希望提出（スタッフ側）** ← 2026-02-22 実装完了
 - [ ] シフト希望インポート（管理者側）
 
 ---
@@ -68,19 +68,25 @@
 
 ---
 
-#### 3. シフト希望提出機能（スタッフ側）
+#### 3. ✅ シフト希望提出機能（スタッフ側）（実装済み）
 **目的**: スタッフが自分のシフト希望を提出できるようにする
 
-- [ ] `models/shift_request.py` モデル作成（必要に応じて）
-- [ ] `data_access/shift_request_repository.py` リポジトリ作成
-- [ ] `services/shift_request_service.py` サービス作成
-- [ ] `routes/staff.py` にシフト希望提出ルート追加
-  - [ ] GET: 希望提出フォーム表示
-  - [ ] POST: 希望保存処理
-- [ ] `templates/staff_submit_request.html` テンプレート作成
-- [ ] スタッフホームに「シフト希望提出」ボタンを追加
-- [ ] 動作確認
-- [ ] Git commit & push
+- [x] `models/shift_request.py` モデル作成
+- [x] `data_access/shift_request_repository.py` リポジトリ作成
+- [x] `validators/shift_request_validator.py` バリデーター作成
+- [x] `services/shift_request_service.py` サービス作成
+- [x] `routes/staff.py` にシフト希望提出ルート追加
+  - [x] GET: 希望提出フォーム表示
+  - [x] POST: 希望保存処理
+  - [x] 希望一覧表示
+  - [x] 希望削除機能
+- [x] `templates/staff_submit_request.html` テンプレート作成
+- [x] `templates/staff_view_requests.html` テンプレート作成
+- [x] スタッフホームに「シフト希望を管理」ボタンを追加
+- [x] 動作確認
+- [x] Git commit & push
+
+**実装日**: 2026-02-22
 
 **データ保存先**: `data/shift_request/shift_request_YYYY-MM.csv`
 
@@ -147,16 +153,16 @@
 
 **目標**: 管理者が完全にシフトを管理できる状態にする ← **達成！**
 
-### フェーズ2: スタッフ機能追加
+### ✅ フェーズ2: スタッフ機能追加（進行中）
 ```
-1. シフト希望提出機能 (3-4時間)
+1. ✅ シフト希望提出機能 (完了) ← 2026-02-22
    ↓
 2. シフト希望インポート機能 (2-3時間)
    ↓
 3. 動作確認
 ```
 
-**目標**: スタッフとのシフト調整フローを確立
+**目標**: スタッフとのシフト調整フローを確立 ← **50%達成！**
 
 ### フェーズ3: 利便性向上
 ```
@@ -193,6 +199,8 @@ git push origin main
 ## 📝 メモ
 
 ### 2026-02-22 の実装内容
+
+#### 午前セッション
 - ✅ シフト追加機能を実装
 - ✅ シフト編集機能を実装
   - routes/admin.py に edit_shift() ルート追加
@@ -207,8 +215,21 @@ git push origin main
 - ✅ 日付・時刻の型変換バグ修正
 - ✅ シフト一覧画面の500エラー修正
 
+#### 午後セッション
+- ✅ **シフト希望提出機能を実装**（レイヤードアーキテクチャに従って実装）
+  - models/shift_request.py モデル作成
+  - data_access/shift_request_repository.py リポジトリ作成
+  - validators/shift_request_validator.py バリデーター作成
+  - services/shift_request_service.py サービス作成
+  - routes/staff.py にシフト希望提出・一覧・削除ルート追加
+  - templates/staff_submit_request.html テンプレート作成
+  - templates/staff_view_requests.html テンプレート作成
+  - templates/staff_home.html にシフト希望管理ボタン追加
+  - 全機能のテスト完了
+  - Git commit & push 完了
+
 ### 次回のセッションで実装すべきもの
-**推奨**: シフト希望提出機能（スタッフ側の基本機能）
+**推奨**: シフト希望インポート機能（管理者側）
 
 ---
 
