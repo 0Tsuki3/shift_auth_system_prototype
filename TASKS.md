@@ -257,24 +257,30 @@ git push origin main
 
 ### 🎯 改善方針
 
-#### フェーズ4A: 基礎改修（優先）
+#### フェーズ4A: 基礎改修（優先）✅ **完了（2026-02-22）**
 **目的**: シフト希望の管理方式を既読/未読ベースに変更
 
-- [ ] **データモデルの変更**
-  - [ ] `models/shift_request.py` に以下のフィールドを追加：
-    - `request_type: str` → まずは "fixed" のみ対応
-    - `note: str` → 備考欄（将来的に条件付き希望用）
+- [x] **データモデルの変更**
+  - [x] `models/shift_request.py` に以下のフィールドを追加：
+    - `request_type: str` → "fixed" のみ対応（デフォルト値）
+    - `note: str` → 備考欄（既存フィールドをそのまま利用）
     - `read_status: str` → "unread" / "read"（承認/却下を廃止）
-  - [ ] CSVマイグレーション（既存データの変換）
+  - [x] CSVマイグレーション（既存データの変換）
+  - [x] 旧データとの互換性維持（from_dict で自動変換）
 
-- [ ] **承認/却下システムの撤廃**
-  - [ ] `shift_request_repository.py` の status フィールドを read_status に変更
-  - [ ] `shift_request_service.py` の approve/reject メソッドを mark_as_read に変更
-  - [ ] 関連するバリデーションを更新
+- [x] **承認/却下システムの撤廃**
+  - [x] `shift_request_repository.py` の status フィールドを read_status に変更
+  - [x] `shift_request_service.py` の update_status メソッドを mark_as_read/mark_as_unread に変更
+  - [x] `validators/shift_request_validator.py` のバリデーションを更新
+  - [x] `routes/admin.py` の承認/却下エンドポイントを既読マーク機能に変更
+  - [x] `routes/staff.py` のシフト希望提出処理を更新
 
-- [ ] **Git commit & push**
+- [x] **Git commit & push**
+  - [x] コミット: "feat: シフト希望を承認/却下から既読/未読ベースに変更"
+  - [x] 12ファイル変更、387追加、56削除
 
 **実装難易度**: ⭐⭐ (データ構造の変更のみ)
+**実装結果**: マイグレーションスクリプト（migrate_shift_requests.py）も作成し、既存データの変換も完了
 
 ---
 
