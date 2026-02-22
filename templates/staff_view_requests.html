@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}シフト希望一覧 - {{ month }} - スタッフ{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>あなたのシフト希望 - {{ month }}</h2>
+    
+    <div style="margin: 1.5rem 0; display: flex; gap: 1rem;">
+        <a href="{{ url_for('staff.staff_home') }}" class="btn btn-secondary">← ホームに戻る</a>
+        <a href="{{ url_for('staff.submit_request', month=month) }}" class="btn btn-primary">新しい希望を提出</a>
+    </div>
+</div>
+
+<div class="card">
+    {% if requests %}
+        <div style="margin-bottom: 1rem;">
+            <p style="color: #666;">合計 {{ requests|length }} 件のシフト希望を提出しています</p>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>日付</th>
+                    <th>時間帯</th>
+                    <th>勤務時間</th>
+                    <th>ステータス</th>
+                    <th>備考</th>
+                    <th>提出日時</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td>{{ req.id }}</td>
+                    <td>{{ req.date.strftime('%m/%d (%a)') }}</td>
+                    <td>{{ req.start.strftime('%H:%M') }} - {{ req.end.strftime('%H:%M') }}</td>
+                    <td>{{ "%.1f"|format(req.duration_hours()) }}h</td>
+                    <td>
+                        {% if req.status == 'pending' %}
+                            <span style="background: #fff3cd; color: #856404; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem;">
+                                ⏳ 保留中
+                            </span>
+                        {% elif req.status == 'approved' %}
+                            <span style="background: #d4edda; color: #155724; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem;">
+                                ✅ 承認済み
+                            </span>
+                        {% elif req.status == 'rejected' %}
+                            <span style="background: #f8d7da; color: #721c24; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem;">
+                                ❌ 却下
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ req.note if req.note else '-' }}</td>
+                    <td>
+                        {% if req.created_at %}
+                            {{ req.created_at.strftime('%m/%d %H:%M') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if req.status == 'pending' %}
+                            <form method="POST" action="{{ url_for('staff.delete_request', month=month, request_id=req.id) }}" 
+                                  onsubmit="return confirm('このシフト希望を削除しますか？');" 
+                                  style="display: inline;">
+                                <button type="submit" class="btn btn-danger" style="padding: 0.5rem 1rem;">削除</button>
+                            </form>
+                        {% else %}
+                            <span style="color: #999;">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+            <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">📌 ステータスについて</h3>
+            <ul style="margin-left: 1.5rem; color: #666;">
+                <li><strong>⏳ 保留中</strong>: 管理者がまだ確認していません</li>
+                <li><strong>✅ 承認済み</strong>: シフトに反映されました</li>
+                <li><strong>❌ 却下</strong>: 残念ながら希望を反映できませんでした</li>
+            </ul>
+            <p style="margin-top: 0.5rem; color: #666;">
+                保留中の希望のみ削除できます。承認済み・却下の希望を変更したい場合は管理者に相談してください。
+            </p>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem; color: #999;">
+            <p style="font-size: 1.5rem; margin-bottom: 1rem;">📋</p>
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">まだシフト希望を提出していません</p>
+            <p>下のボタンから希望を提出してください</p>
+            <div style="margin-top: 2rem;">
+                <a href="{{ url_for('staff.submit_request', month=month) }}" class="btn btn-primary">シフト希望を提出する</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- 月選択 -->
+<div class="card">
+    <h3>他の月を見る</h3>
+    <form method="GET" action="{{ url_for('staff.view_requests', month=month) }}" style="display: flex; gap: 1rem; align-items: center;">
+        <input type="month" name="month" value="{{ month }}" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <button type="submit" class="btn btn-secondary" onclick="this.form.action = this.form.action.replace('{{ month }}', this.form.month.value)">表示</button>
+    </form>
+</div>
+{% endblock %}
