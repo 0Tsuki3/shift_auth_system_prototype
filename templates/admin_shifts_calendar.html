@@ -47,6 +47,16 @@
                                            style="padding: 0.25rem 0.75rem; font-size: 0.875rem; margin-right: 0.5rem;">
                                             ✏️ 編集
                                         </a>
+                                        <form method="POST" 
+                                              action="{{ url_for('admin.delete_shift', month=month, shift_id=shift['id']) }}" 
+                                              style="display: inline;"
+                                              onsubmit="return confirm('本当に削除しますか？\n\n{{ shift['full_name'] }}\n{{ shift['start'] }} - {{ shift['end'] }}');">
+                                            <button type="submit" 
+                                                    class="btn btn-danger" 
+                                                    style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">
+                                                🗑️ 削除
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             {% endfor %}

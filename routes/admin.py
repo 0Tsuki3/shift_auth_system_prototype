@@ -312,3 +312,41 @@ def edit_shift(month, shift_id):
         flash(f'エラー: {str(e)}', 'error')
         return redirect(url_for('admin.admin_home'))
 
+
+@admin_bp.route('/shifts/<month>/delete/<int:shift_id>', methods=['POST'])
+@admin_required
+def delete_shift(month, shift_id):
+    """
+    シフト削除
+    
+    URL: /admin/shifts/2025-09/delete/5
+    
+    POST: シフトを削除
+    """
+    try:
+        # シフトの存在チェックと情報取得
+        existing_shifts = shift_service.get_shifts_by_month(month)
+        shift_to_delete = None
+        for s in existing_shifts:
+            if s.id == shift_id:
+                shift_to_delete = s
+                break
+        
+        if not shift_to_delete:
+            flash(f'シフトID {shift_id} が見つかりません', 'error')
+            return redirect(url_for('admin.view_shifts', month=month))
+        
+        # シフト削除
+        success = shift_service.delete_shift(month, shift_id)
+        
+        if success:
+            flash(f'{shift_to_delete.date} のシフトを削除しました', 'success')
+        else:
+            flash('シフトの削除に失敗しました', 'error')
+        
+        return redirect(url_for('admin.view_shifts', month=month))
+    
+    except Exception as e:
+        flash(f'エラー: {str(e)}', 'error')
+        return redirect(url_for('admin.view_shifts', month=month))
+
