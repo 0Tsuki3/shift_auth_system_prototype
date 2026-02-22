@@ -381,17 +381,15 @@ def view_shift_requests(month):
                 'position': staff.position if staff else '不明'
             })
         
-        # ステータス別にグループ化
-        pending_requests = [r for r in requests_with_staff if r['request'].status == 'pending']
-        approved_requests = [r for r in requests_with_staff if r['request'].status == 'approved']
-        rejected_requests = [r for r in requests_with_staff if r['request'].status == 'rejected']
+        # 既読ステータス別にグループ化
+        unread_requests = [r for r in requests_with_staff if r['request'].read_status == 'unread']
+        read_requests = [r for r in requests_with_staff if r['request'].read_status == 'read']
         
         return render_template(
             'admin_shift_requests.html',
             month=month,
-            pending_requests=pending_requests,
-            approved_requests=approved_requests,
-            rejected_requests=rejected_requests,
+            unread_requests=unread_requests,
+            read_requests=read_requests,
             total_requests=len(shift_requests)
         )
     except ValueError as e:
@@ -427,8 +425,8 @@ def import_shift_request(month, request_id):
         # シフトを作成
         shift_service.create_shift(month, shift)
         
-        # シフト希望のステータスを 'approved' に更新
-        shift_request_service.update_status(month, request_id, 'approved')
+        # シフト希望を既読に更新
+        shift_request_service.mark_as_read(month, request_id)
         
         # スタッフ名を取得して表示
         staff = staff_service.get_all_staff()
@@ -443,26 +441,26 @@ def import_shift_request(month, request_id):
         return redirect(url_for('admin.view_shift_requests', month=month))
 
 
-@admin_bp.route('/shift-requests/<month>/reject/<int:request_id>', methods=['POST'])
+@admin_bp.route('/shift-requests/<month>/mark-read/<int:request_id>', methods=['POST'])
 @admin_required
-def reject_shift_request(month, request_id):
+def mark_request_as_read(month, request_id):
     """
-    シフト希望を却下
+    シフト希望を既読にする
     
-    URL: /admin/shift-requests/2025-09/reject/5
+    URL: /admin/shift-requests/2025-09/mark-read/5
     
-    POST: シフト希望のステータスを 'rejected' に更新
+    POST: シフト希望の既読ステータスを 'read' に更新
     """
     try:
-        # シフト希望のステータスを更新
-        shift_request = shift_request_service.update_status(month, request_id, 'rejected')
+        # シフト希望を既読にする
+        shift_request = shift_request_service.mark_as_read(month, request_id)
         
         # スタッフ名を取得して表示
         staff = staff_service.get_all_staff()
         staff_dict = {s.account: s for s in staff}
         staff_name = staff_dict[shift_request.account].full_name if shift_request.account in staff_dict else shift_request.account
         
-        flash(f'{staff_name} のシフト希望（{shift_request.date}）を却下しました', 'info')
+        flash(f'{staff_name} のシフト希望（{shift_request.date}）を既読にしました', 'info')
         return redirect(url_for('admin.view_shift_requests', month=month))
     
     except ValueError as e:

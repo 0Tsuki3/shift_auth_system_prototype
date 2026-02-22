@@ -80,10 +80,15 @@ class ShiftRequestValidator:
         except Exception as e:
             errors.append(f"勤務時間の計算エラー: {str(e)}")
         
-        # 4. ステータスのチェック
-        valid_statuses = ['pending', 'approved', 'rejected']
-        if request.status not in valid_statuses:
-            errors.append(f"ステータスは {'/'.join(valid_statuses)} のいずれかにしてください")
+        # 4. request_typeのチェック
+        valid_request_types = ['fixed']  # 現在はfixedのみ対応
+        if request.request_type not in valid_request_types:
+            errors.append(f"希望タイプは {'/'.join(valid_request_types)} のいずれかにしてください")
+        
+        # 5. read_statusのチェック
+        valid_read_statuses = ['unread', 'read']
+        if request.read_status not in valid_read_statuses:
+            errors.append(f"既読ステータスは {'/'.join(valid_read_statuses)} のいずれかにしてください")
         
         # 結果を返す
         return len(errors) == 0, errors

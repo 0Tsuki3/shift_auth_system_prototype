@@ -28,7 +28,8 @@ class ShiftRequest:
         date: 希望日付（例: 2025-09-07）
         start: 希望開始時刻（例: 09:00）
         end: 希望終了時刻（例: 15:00）
-        status: ステータス（pending/approved/rejected）
+        request_type: 希望タイプ（fixed: 固定希望、conditional: 条件付き希望）※現在はfixedのみ対応
+        read_status: 既読ステータス（unread: 未読、read: 既読）
         note: 備考（任意）
         created_at: 提出日時
     """
@@ -37,7 +38,8 @@ class ShiftRequest:
     date: date          # 希望日付
     start: time         # 希望開始時刻
     end: time           # 希望終了時刻
-    status: str = 'pending'  # ステータス（pending/approved/rejected）
+    request_type: str = 'fixed'  # 希望タイプ（fixed: 固定希望）
+    read_status: str = 'unread'  # 既読ステータス（unread: 未読、read: 既読）
     note: str = ''      # 備考
     created_at: Optional[datetime] = None  # 提出日時
     
@@ -71,7 +73,8 @@ class ShiftRequest:
                 'date': '2025-09-07',
                 'start': '09:00',
                 'end': '15:00',
-                'status': 'pending',
+                'request_type': 'fixed',
+                'read_status': 'unread',
                 'note': '',
                 'created_at': '2025-09-01 10:00:00'
             }
@@ -82,7 +85,8 @@ class ShiftRequest:
             'date': self.date.strftime('%Y-%m-%d'),  # 日付を文字列に
             'start': self.start.strftime('%H:%M'),   # 時刻を文字列に
             'end': self.end.strftime('%H:%M'),
-            'status': self.status,
+            'request_type': self.request_type,
+            'read_status': self.read_status,
             'note': self.note,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else ''
         }
@@ -103,6 +107,7 @@ class ShiftRequest:
         
         Note:
             idが無い場合は0を設定（後で採番）
+            旧データ（status）との互換性維持のため、statusがあればread_statusに変換
         """
         # IDの取得（新規の場合は0）
         request_id = int(data.get('id', 0))
@@ -116,13 +121,28 @@ class ShiftRequest:
                 # 日付フォーマットが異なる場合は現在時刻を設定
                 created_at = datetime.now()
         
+        # 旧データ（status）との互換性維持
+        # statusがあればread_statusに変換（pending/approved/rejected → unread/read）
+        if 'read_status' in data:
+            read_status = data.get('read_status', 'unread')
+        elif 'status' in data:
+            # 旧statusをread_statusに変換
+            old_status = data.get('status', 'pending')
+            if old_status == 'pending':
+                read_status = 'unread'
+            else:  # approved or rejected
+                read_status = 'read'
+        else:
+            read_status = 'unread'
+        
         return cls(
             id=request_id,
             account=data['account'],
             date=datetime.strptime(data['date'], '%Y-%m-%d').date(),  # 文字列→日付
             start=datetime.strptime(data['start'], '%H:%M').time(),   # 文字列→時刻
             end=datetime.strptime(data['end'], '%H:%M').time(),
-            status=data.get('status', 'pending'),
+            request_type=data.get('request_type', 'fixed'),
+            read_status=read_status,
             note=data.get('note', ''),
             created_at=created_at
         )

@@ -107,19 +107,19 @@ class ShiftRequestRepository:
         all_requests = self.find_all_by_month(month)
         return [r for r in all_requests if r.account == account]
     
-    def find_by_status(self, month: str, status: str) -> List[ShiftRequest]:
+    def find_by_read_status(self, month: str, read_status: str) -> List[ShiftRequest]:
         """
-        ステータスでシフト希望を検索
+        既読ステータスでシフト希望を検索
         
         Args:
             month: 'YYYY-MM' 形式
-            status: ステータス（pending/approved/rejected）
+            read_status: 既読ステータス（unread/read）
         
         Returns:
             該当するShiftRequestオブジェクトのリスト
         """
         all_requests = self.find_all_by_month(month)
-        return [r for r in all_requests if r.status == status]
+        return [r for r in all_requests if r.read_status == read_status]
     
     def save_all_by_month(self, month: str, requests: List[ShiftRequest]) -> None:
         """
@@ -150,7 +150,7 @@ class ShiftRequestRepository:
         with open(file_path, 'w', newline='', encoding='utf-8') as f:
             if requests:
                 # シフト希望データがある場合
-                fieldnames = ['id', 'account', 'date', 'start', 'end', 'status', 'note', 'created_at']
+                fieldnames = ['id', 'account', 'date', 'start', 'end', 'request_type', 'read_status', 'note', 'created_at']
                 writer = csv.DictWriter(f, fieldnames=fieldnames)
                 writer.writeheader()
                 
@@ -161,7 +161,7 @@ class ShiftRequestRepository:
                     writer.writerow(request.to_dict())
             else:
                 # 空の場合はヘッダーだけ
-                fieldnames = ['id', 'account', 'date', 'start', 'end', 'status', 'note', 'created_at']
+                fieldnames = ['id', 'account', 'date', 'start', 'end', 'request_type', 'read_status', 'note', 'created_at']
                 writer = csv.DictWriter(f, fieldnames=fieldnames)
                 writer.writeheader()
     

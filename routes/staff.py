@@ -189,7 +189,8 @@ def submit_request(month):
                 date=datetime.strptime(request_date, '%Y-%m-%d').date(),
                 start=datetime.strptime(request_start, '%H:%M').time(),
                 end=datetime.strptime(request_end, '%H:%M').time(),
-                status='pending',
+                request_type='fixed',  # 固定希望
+                read_status='unread',  # 未読
                 note=request_note,
                 created_at=datetime.now()
             )

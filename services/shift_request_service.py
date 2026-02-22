@@ -71,13 +71,13 @@ class ShiftRequestService:
         # データ取得
         return self.repository.find_by_account(month, account)
     
-    def get_requests_by_status(self, month: str, status: str) -> List[ShiftRequest]:
+    def get_requests_by_read_status(self, month: str, read_status: str) -> List[ShiftRequest]:
         """
-        ステータス別シフト希望を取得
+        既読ステータス別シフト希望を取得
         
         Args:
             month: 'YYYY-MM' 形式
-            status: ステータス（pending/approved/rejected）
+            read_status: 既読ステータス（unread/read）
         
         Returns:
             ShiftRequestオブジェクトのリスト
@@ -88,7 +88,7 @@ class ShiftRequestService:
             raise ValueError(error)
         
         # データ取得
-        return self.repository.find_by_status(month, status)
+        return self.repository.find_by_read_status(month, read_status)
     
     def get_request_by_id(self, month: str, request_id: int) -> ShiftRequest:
         """
@@ -179,32 +179,50 @@ class ShiftRequestService:
         """
         return self.repository.delete(month, request_id)
     
-    def update_status(self, month: str, request_id: int, status: str) -> ShiftRequest:
+    def mark_as_read(self, month: str, request_id: int) -> ShiftRequest:
         """
-        シフト希望のステータスを更新（管理者用）
+        シフト希望を既読にする（管理者用）
         
         Args:
             month: 'YYYY-MM' 形式
             request_id: シフト希望ID
-            status: 新しいステータス（pending/approved/rejected）
         
         Returns:
             更新されたShiftRequestオブジェクト
         
         Raises:
-            ValueError: 存在しないID、無効なステータス
+            ValueError: 存在しないID
         """
-        # ステータスの妥当性チェック
-        valid_statuses = ['pending', 'approved', 'rejected']
-        if status not in valid_statuses:
-            raise ValueError(f"ステータスは {'/'.join(valid_statuses)} のいずれかにしてください")
-        
         # シフト希望の取得
         request = self.repository.find_by_id(month, request_id)
         if not request:
             raise ValueError(f"シフト希望ID {request_id} が見つかりません")
         
-        # ステータス更新
-        request.status = status
+        # 既読に更新
+        request.read_status = 'read'
+        updated_request = self.repository.save(month, request)
+        return updated_request
+    
+    def mark_as_unread(self, month: str, request_id: int) -> ShiftRequest:
+        """
+        シフト希望を未読に戻す（管理者用）
+        
+        Args:
+            month: 'YYYY-MM' 形式
+            request_id: シフト希望ID
+        
+        Returns:
+            更新されたShiftRequestオブジェクト
+        
+        Raises:
+            ValueError: 存在しないID
+        """
+        # シフト希望の取得
+        request = self.repository.find_by_id(month, request_id)
+        if not request:
+            raise ValueError(f"シフト希望ID {request_id} が見つかりません")
+        
+        # 未読に更新
+        request.read_status = 'unread'
         updated_request = self.repository.save(month, request)
         return updated_request
