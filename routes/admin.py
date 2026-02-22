@@ -9,6 +9,7 @@
 from flask import Blueprint, request, render_template, redirect, url_for, session, flash
 from core.decorators import admin_required
 from services.shift_service import ShiftService
+from services.shift_request_service import ShiftRequestService
 from services.staff_service import StaffService
 from presenters.shift_presenter import ShiftPresenter
 from datetime import datetime
@@ -18,6 +19,7 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 # Serviceのインスタンス
 shift_service = ShiftService()
+shift_request_service = ShiftRequestService()
 staff_service = StaffService()
 shift_presenter = ShiftPresenter()
 
@@ -349,4 +351,121 @@ def delete_shift(month, shift_id):
     except Exception as e:
         flash(f'エラー: {str(e)}', 'error')
         return redirect(url_for('admin.view_shifts', month=month))
+
+
+@admin_bp.route('/shift-requests/<month>')
+@admin_required
+def view_shift_requests(month):
+    """
+    シフト希望一覧表示（管理者用）
+    
+    URL: /admin/shift-requests/2025-09
+    
+    スタッフから提出されたシフト希望を一覧表示
+    """
+    try:
+        # シフト希望を取得
+        shift_requests = shift_request_service.get_requests_by_month(month)
+        
+        # スタッフ情報を取得
+        staff_list = staff_service.get_all_staff()
+        staff_dict = {staff.account: staff for staff in staff_list}
+        
+        # シフト希望にスタッフ情報を追加
+        requests_with_staff = []
+        for req in shift_requests:
+            staff = staff_dict.get(req.account)
+            requests_with_staff.append({
+                'request': req,
+                'staff_name': staff.full_name if staff else req.account,
+                'position': staff.position if staff else '不明'
+            })
+        
+        # ステータス別にグループ化
+        pending_requests = [r for r in requests_with_staff if r['request'].status == 'pending']
+        approved_requests = [r for r in requests_with_staff if r['request'].status == 'approved']
+        rejected_requests = [r for r in requests_with_staff if r['request'].status == 'rejected']
+        
+        return render_template(
+            'admin_shift_requests.html',
+            month=month,
+            pending_requests=pending_requests,
+            approved_requests=approved_requests,
+            rejected_requests=rejected_requests,
+            total_requests=len(shift_requests)
+        )
+    except ValueError as e:
+        flash(str(e), 'error')
+        return redirect(url_for('admin.admin_home'))
+
+
+@admin_bp.route('/shift-requests/<month>/import/<int:request_id>', methods=['POST'])
+@admin_required
+def import_shift_request(month, request_id):
+    """
+    シフト希望を確定シフトにインポート
+    
+    URL: /admin/shift-requests/2025-09/import/5
+    
+    POST: シフト希望を確定シフトに変換して保存
+    """
+    try:
+        from models.shift import Shift
+        
+        # シフト希望を取得
+        shift_request = shift_request_service.get_request_by_id(month, request_id)
+        
+        # 確定シフトに変換
+        shift = Shift(
+            id=0,  # 新規作成
+            account=shift_request.account,
+            date=shift_request.date,
+            start=shift_request.start,
+            end=shift_request.end
+        )
+        
+        # シフトを作成
+        shift_service.create_shift(month, shift)
+        
+        # シフト希望のステータスを 'approved' に更新
+        shift_request_service.update_status(month, request_id, 'approved')
+        
+        # スタッフ名を取得して表示
+        staff = staff_service.get_all_staff()
+        staff_dict = {s.account: s for s in staff}
+        staff_name = staff_dict[shift_request.account].full_name if shift_request.account in staff_dict else shift_request.account
+        
+        flash(f'{staff_name} のシフト希望（{shift_request.date}）を確定シフトに追加しました', 'success')
+        return redirect(url_for('admin.view_shift_requests', month=month))
+    
+    except ValueError as e:
+        flash(str(e), 'error')
+        return redirect(url_for('admin.view_shift_requests', month=month))
+
+
+@admin_bp.route('/shift-requests/<month>/reject/<int:request_id>', methods=['POST'])
+@admin_required
+def reject_shift_request(month, request_id):
+    """
+    シフト希望を却下
+    
+    URL: /admin/shift-requests/2025-09/reject/5
+    
+    POST: シフト希望のステータスを 'rejected' に更新
+    """
+    try:
+        # シフト希望のステータスを更新
+        shift_request = shift_request_service.update_status(month, request_id, 'rejected')
+        
+        # スタッフ名を取得して表示
+        staff = staff_service.get_all_staff()
+        staff_dict = {s.account: s for s in staff}
+        staff_name = staff_dict[shift_request.account].full_name if shift_request.account in staff_dict else shift_request.account
+        
+        flash(f'{staff_name} のシフト希望（{shift_request.date}）を却下しました', 'info')
+        return redirect(url_for('admin.view_shift_requests', month=month))
+    
+    except ValueError as e:
+        flash(str(e), 'error')
+        return redirect(url_for('admin.view_shift_requests', month=month))
 

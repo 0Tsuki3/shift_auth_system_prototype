@@ -257,9 +257,25 @@ def add_shift(month):
 
 既存の実装を参考にしてください：
 
+### 基本的なCRUD操作
 - **スタッフ追加**: `routes/admin.py` の `add_staff()`
+- **シフト追加**: `routes/admin.py` の `add_shift()`
+- **シフト編集**: `routes/admin.py` の `edit_shift()`
+- **シフト削除**: `routes/admin.py` の `delete_shift()`
 - **シフト表示**: `routes/admin.py` の `view_shifts()`
-- **フォーム**: `templates/admin_add_staff.html`
+
+### 完全な機能実装例（全7層）
+- **シフト希望提出機能**: 
+  - Model: `models/shift_request.py`
+  - Repository: `data_access/shift_request_repository.py`
+  - Validator: `validators/shift_request_validator.py`
+  - Service: `services/shift_request_service.py`
+  - Routes: `routes/staff.py` の `submit_request()`, `view_requests()`, `delete_request()`
+  - Templates: `templates/staff_submit_request.html`, `templates/staff_view_requests.html`
+
+### HTMLフォーム
+- **追加フォーム**: `templates/admin_add_staff.html`, `templates/staff_submit_request.html`
+- **一覧表示**: `templates/admin_shifts_calendar.html`, `templates/staff_view_requests.html`
 
 ---
 

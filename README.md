@@ -7,6 +7,8 @@
 - ✅ **認証システム**: ログイン・ログアウト、管理者・スタッフの権限管理
 - ✅ **スタッフ管理**: 一覧表示、新規追加
 - ✅ **シフト管理**: 月別カレンダー表示、追加、編集、削除
+- ✅ **シフト希望提出**: スタッフがシフト希望を提出・閲覧・削除
+- ✅ **シフト希望インポート**: 管理者がシフト希望を確認・承認・却下
 - ✅ **給料計算**: 月別給料明細の表示
 
 詳細な機能リストは [`TASKS.md`](./TASKS.md) を参照してください。
@@ -25,20 +27,24 @@ shift_auth_system_prototype_gcp/
 │
 ├── models/                    # データモデル
 │   ├── shift.py              # シフトモデル
+│   ├── shift_request.py      # シフト希望モデル
 │   ├── staff.py              # スタッフモデル
 │   └── auth.py               # 認証モデル
 │
 ├── data_access/              # データアクセス層（Repository）
 │   ├── shift_repository.py   # シフトデータアクセス
+│   ├── shift_request_repository.py  # シフト希望データアクセス
 │   ├── staff_repository.py   # スタッフデータアクセス
 │   └── auth_repository.py    # 認証データアクセス
 │
 ├── validators/               # バリデーション層
 │   ├── shift_validator.py    # シフトバリデーション
+│   ├── shift_request_validator.py   # シフト希望バリデーション
 │   └── staff_validator.py    # スタッフバリデーション
 │
 ├── services/                 # サービス層（ビジネスロジック）
 │   ├── shift_service.py      # シフトサービス
+│   ├── shift_request_service.py     # シフト希望サービス
 │   └── staff_service.py      # スタッフサービス
 │
 ├── presenters/               # プレゼンター層（表示整形）
@@ -52,6 +58,10 @@ shift_auth_system_prototype_gcp/
 ├── templates/               # HTMLテンプレート
 ├── static/                  # 静的ファイル（CSS, JS）
 ├── data/                    # CSVデータ
+│   ├── shift/              # シフトデータ（月別）
+│   ├── shift_request/      # シフト希望データ（月別）
+│   ├── staff.csv           # スタッフマスタ
+│   └── auth.csv            # 認証情報
 │
 ├── plan/                    # 設計書
 │   ├── LAYERED_ARCHITECTURE.md
@@ -148,7 +158,7 @@ git push origin main
 
 ## 📚 ドキュメント一覧
 
-このプロジェクトには目的別に整理された14個のドキュメントがあります。
+このプロジェクトには目的別に整理された15個のドキュメントがあります。
 
 ### 🎯 まず読むべき文書
 
@@ -162,6 +172,7 @@ git push origin main
 
 | ドキュメント | 内容 | 読むべき人 |
 |-------------|------|-----------|
+| `SYSTEM_DIAGRAMS.md` ⭐ | レイヤー構造・処理フローの図解（Mermaid） | 視覚的に理解したい人 |
 | `plan/LAYERED_ARCHITECTURE.md` ⭐ | 7層アーキテクチャの完全ガイド（29KB） | コードを書く人全員 |
 | `plan/APP_STRUCTURE.md` | システム全体の構造と動作フロー | システム全体を理解したい人 |
 
@@ -199,24 +210,27 @@ git push origin main
 #### 初めての人
 ```
 1. README.md (このファイル) - 全体概要
-2. TASKS.md - 現状把握
-3. plan/LAYERED_ARCHITECTURE.md - コードの書き方
-4. DEVELOPMENT_GUIDE.md - 開発手順
+2. SYSTEM_DIAGRAMS.md - 図で理解する（視覚的）
+3. TASKS.md - 現状把握
+4. plan/LAYERED_ARCHITECTURE.md - コードの書き方
+5. DEVELOPMENT_GUIDE.md - 開発手順
 ```
 
 #### 機能開発する人
 ```
 1. TASKS.md - 何を実装するか確認
-2. plan/LAYERED_ARCHITECTURE.md - アーキテクチャ理解
-3. DEVELOPMENT_GUIDE.md - 実装方法
-4. GIT_GUIDE.md - コミット方法
+2. SYSTEM_DIAGRAMS.md - 処理フローを図で確認
+3. plan/LAYERED_ARCHITECTURE.md - アーキテクチャ理解
+4. DEVELOPMENT_GUIDE.md - 実装方法
+5. GIT_GUIDE.md - コミット方法
 ```
 
 #### 認証機能を触る人
 ```
-1. plan/LOGIN_AND_DECORATORS.md - 認証の仕組み
-2. plan/USER_FLOW_MAPPING.md - 権限マトリクス
-3. plan/APP_STRUCTURE.md - 全体フロー
+1. SYSTEM_DIAGRAMS.md - 認証フローの図
+2. plan/LOGIN_AND_DECORATORS.md - 認証の仕組み
+3. plan/USER_FLOW_MAPPING.md - 権限マトリクス
+4. plan/APP_STRUCTURE.md - 全体フロー
 ```
 
 #### SQL移行を検討する人
