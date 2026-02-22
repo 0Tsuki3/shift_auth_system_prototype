@@ -188,6 +188,14 @@ def add_shift(month):
             start_str = request.form.get('start')
             end_str = request.form.get('end')
             
+            # 時刻文字列を正規化（秒が含まれている場合は除去）
+            def normalize_time(time_str):
+                parts = time_str.split(':')
+                return f"{parts[0]}:{parts[1]}"  # HH:MM のみ
+            
+            start_str = normalize_time(start_str)
+            end_str = normalize_time(end_str)
+            
             # 文字列を適切な型に変換
             date_obj = dt.strptime(date_str, '%Y-%m-%d').date()
             start_time = dt.strptime(start_str, '%H:%M').time()
@@ -245,6 +253,14 @@ def edit_shift(month, shift_id):
             date_str = request.form.get('date')
             start_str = request.form.get('start')
             end_str = request.form.get('end')
+            
+            # 時刻文字列を正規化（秒が含まれている場合は除去）
+            def normalize_time(time_str):
+                parts = time_str.split(':')
+                return f"{parts[0]}:{parts[1]}"  # HH:MM のみ
+            
+            start_str = normalize_time(start_str)
+            end_str = normalize_time(end_str)
             
             # 文字列を適切な型に変換
             date_obj = dt.strptime(date_str, '%Y-%m-%d').date()
