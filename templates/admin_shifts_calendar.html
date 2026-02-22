@@ -33,16 +33,16 @@
                             {% for shift in shifts %}
                                 <div style="background: #f8f9fa; padding: 0.75rem; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
                                     <div>
-                                        <strong>{{ shift.full_name }}</strong>
+                                        <strong>{{ shift['full_name'] }}</strong>
                                         <span style="color: #666; margin-left: 1rem;">
-                                            {{ shift.start }} - {{ shift.end }}
+                                            {{ shift['start'] }} - {{ shift['end'] }}
                                         </span>
                                         <span style="color: #999; margin-left: 0.5rem;">
-                                            ({{ "%.1f"|format(shift.duration_hours) }}h)
+                                            ({{ "%.1f"|format(shift['duration_hours']) }}h)
                                         </span>
                                     </div>
                                     <div>
-                                        <a href="{{ url_for('admin.edit_shift', month=month, shift_id=shift.id) }}" 
+                                        <a href="{{ url_for('admin.edit_shift', month=month, shift_id=shift['id']) }}" 
                                            class="btn btn-secondary" 
                                            style="padding: 0.25rem 0.75rem; font-size: 0.875rem; margin-right: 0.5rem;">
                                             ✏️ 編集

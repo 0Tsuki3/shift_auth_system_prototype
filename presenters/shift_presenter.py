@@ -32,7 +32,7 @@ class ShiftPresenter:
         Returns:
             {
                 '2025-09-01': [
-                    {'account': 'nakamura', 'start': '09:00', 'end': '15:00', 'hours': 6.0},
+                    {'id': 1, 'account': 'nakamura', 'start': '09:00', 'end': '15:00', 'hours': 6.0},
                     ...
                 ],
                 '2025-09-02': [...],
@@ -70,6 +70,7 @@ class ShiftPresenter:
             date_str = shift.date.strftime('%Y-%m-%d')
             if date_str in calendar_data:
                 calendar_data[date_str].append({
+                    'id': shift.id,
                     'account': shift.account,
                     'start': shift.start.strftime('%H:%M'),
                     'end': shift.end.strftime('%H:%M'),
