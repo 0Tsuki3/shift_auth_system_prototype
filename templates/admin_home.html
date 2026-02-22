@@ -38,6 +38,9 @@
         <a href="{{ url_for('admin.add_staff') }}" class="btn btn-primary" style="margin-right: 1rem;">
             + スタッフを追加
         </a>
+        <a href="{{ url_for('admin.add_shift', month=now_month) }}" class="btn btn-primary" style="margin-right: 1rem;">
+            + シフトを追加
+        </a>
         <a href="{{ url_for('admin.view_shifts', month=now_month) }}" class="btn btn-secondary">
             今月のシフトを編集
         </a>

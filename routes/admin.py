@@ -148,3 +148,55 @@ def add_staff():
     
     return render_template('admin_add_staff.html')
 
+
+@admin_bp.route('/shifts/<month>/add', methods=['GET', 'POST'])
+@admin_required
+def add_shift(month):
+    """
+    シフト追加
+    
+    URL: /admin/shifts/2025-09/add
+    
+    GET: 追加フォーム表示
+    POST: シフトを追加
+    """
+    if request.method == 'POST':
+        try:
+            from models.shift import Shift
+            
+            # フォームからデータ取得
+            account = request.form.get('account')
+            date = request.form.get('date')
+            start = request.form.get('start')
+            end = request.form.get('end')
+            
+            # Shiftオブジェクト作成（id=0で新規作成）
+            shift = Shift(
+                id=0,
+                account=account,
+                date=date,
+                start=start,
+                end=end
+            )
+            
+            # シフト作成（バリデーション＋保存）
+            shift_service.create_shift(month, shift)
+            
+            flash(f'{date} のシフトを追加しました', 'success')
+            return redirect(url_for('admin.view_shifts', month=month))
+        
+        except ValueError as e:
+            flash(str(e), 'error')
+    
+    # GET: フォーム表示
+    try:
+        staff_list = staff_service.get_all_staff()
+        return render_template(
+            'admin_add_shift.html',
+            month=month,
+            staff_list=staff_list
+        )
+    except Exception as e:
+        flash(f'エラー: {str(e)}', 'error')
+        return redirect(url_for('admin.admin_home'))
+

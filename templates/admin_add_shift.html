@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}シフト追加 - 管理者{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>シフトを追加 - {{ month }}</h2>
+    
+    <div style="margin: 1.5rem 0;">
+        <a href="{{ url_for('admin.view_shifts', month=month) }}" class="btn btn-secondary">← シフト一覧に戻る</a>
+    </div>
+</div>
+
+<div class="card">
+    <form method="POST" action="{{ url_for('admin.add_shift', month=month) }}">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+            <div class="form-group">
+                <label for="account">スタッフ *</label>
+                <select id="account" name="account" required>
+                    <option value="">選択してください</option>
+                    {% for staff in staff_list %}
+                        <option value="{{ staff.account }}">
+                            {{ staff.full_name }} ({{ staff.position }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="date">日付 *</label>
+                <input type="date" id="date" name="date" required 
+                       min="{{ month }}-01" 
+                       max="{{ month }}-31">
+                <small style="color: #999;">{{ month }} の日付を選択してください</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="start">開始時刻 *</label>
+                <input type="time" id="start" name="start" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="end">終了時刻 *</label>
+                <input type="time" id="end" name="end" required>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+            <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">💡 入力のヒント</h3>
+            <ul style="margin-left: 1.5rem; color: #666;">
+                <li>スタッフは必ず選択してください</li>
+                <li>日付は {{ month }} の範囲内で選択してください</li>
+                <li>開始時刻と終了時刻を正しく入力してください（例: 09:00 - 15:00）</li>
+                <li>終了時刻は開始時刻より後である必要があります</li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">シフトを追加</button>
+            <a href="{{ url_for('admin.view_shifts', month=month) }}" class="btn btn-secondary" style="margin-left: 1rem;">
+                キャンセル
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+// 日付の月を自動設定
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('date');
+    const month = '{{ month }}';
+    
+    // 今日の日付を取得
+    const today = new Date();
+    const currentMonth = today.toISOString().slice(0, 7); // YYYY-MM
+    
+    // 指定月の1日をデフォルト値に設定
+    if (month) {
+        dateInput.value = month + '-01';
+    }
+    
+    // 開始時刻と終了時刻のバリデーション
+    const startInput = document.getElementById('start');
+    const endInput = document.getElementById('end');
+    
+    function validateTimes() {
+        if (startInput.value && endInput.value) {
+            if (startInput.value >= endInput.value) {
+                endInput.setCustomValidity('終了時刻は開始時刻より後である必要があります');
+            } else {
+                endInput.setCustomValidity('');
+            }
+        }
+    }
+    
+    startInput.addEventListener('change', validateTimes);
+    endInput.addEventListener('change', validateTimes);
+});
+</script>
+{% endblock %}
