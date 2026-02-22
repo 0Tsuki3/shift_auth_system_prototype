@@ -136,6 +136,87 @@ git push origin main
 
 詳細なGit操作については `GIT_GUIDE.md` を参照してください。
 
+## 📚 ドキュメント一覧
+
+このプロジェクトには目的別に整理された14個のドキュメントがあります。
+
+### 🎯 まず読むべき文書
+
+| ドキュメント | 内容 | 読むべき人 |
+|-------------|------|-----------|
+| `README.md` (このファイル) | プロジェクト概要、セットアップ手順 | 全員（最初に必読） |
+| `TASKS.md` | 実装済み/未実装機能のリスト | 開発者、プロジェクト管理者 |
+| `DEVELOPMENT_GUIDE.md` | 機能開発の実践ガイド | 機能を追加する人 |
+
+### 🏗️ アーキテクチャ設計
+
+| ドキュメント | 内容 | 読むべき人 |
+|-------------|------|-----------|
+| `plan/LAYERED_ARCHITECTURE.md` ⭐ | 7層アーキテクチャの完全ガイド（29KB） | コードを書く人全員 |
+| `plan/APP_STRUCTURE.md` | システム全体の構造と動作フロー | システム全体を理解したい人 |
+
+### 🔐 認証・権限管理
+
+| ドキュメント | 内容 | 読むべき人 |
+|-------------|------|-----------|
+| `plan/LOGIN_AND_DECORATORS.md` ⭐ | ログイン機能とデコレーターの詳細解説（19KB） | 認証機能を触る人 |
+| `plan/USER_FLOW_MAPPING.md` | ユーザーフローと権限マッピング | UI/UX設計、権限設計する人 |
+
+### 📊 データベース・SQL移行
+
+| ドキュメント | 内容 | 読むべき人 |
+|-------------|------|-----------|
+| `plan/MIGRATION_TO_SQL.md` | CSV → SQL 移行計画 | DB移行を検討する人 |
+| `plan/SUPABASE_SETUP.md` | Supabase（無料PostgreSQL）セットアップ | 無料でSQL化したい人 |
+
+### 📈 機能分析・将来計画
+
+| ドキュメント | 内容 | 読むべき人 |
+|-------------|------|-----------|
+| `plan/FEATURE_ANALYSIS.md` | 全機能（72エンドポイント）の分析 | 機能の優先度を判断する人 |
+| `plan/ARCHITECTURE_DECISIONS.md` | 技術スタック選定理由 | 技術選定・コスト判断する人 |
+| `plan/REFACTORING_PLAN.md` | コード整理計画 | リファクタリングを検討する人 |
+
+### 🔧 運用・Git管理
+
+| ドキュメント | 内容 | 読むべき人 |
+|-------------|------|-----------|
+| `GIT_GUIDE.md` | Git操作ガイド | Git初心者、復習したい人 |
+| `plan/README.md` | plan/フォルダのインデックス | GCP作業する人 |
+
+### 🎯 読む順番（推奨）
+
+#### 初めての人
+```
+1. README.md (このファイル) - 全体概要
+2. TASKS.md - 現状把握
+3. plan/LAYERED_ARCHITECTURE.md - コードの書き方
+4. DEVELOPMENT_GUIDE.md - 開発手順
+```
+
+#### 機能開発する人
+```
+1. TASKS.md - 何を実装するか確認
+2. plan/LAYERED_ARCHITECTURE.md - アーキテクチャ理解
+3. DEVELOPMENT_GUIDE.md - 実装方法
+4. GIT_GUIDE.md - コミット方法
+```
+
+#### 認証機能を触る人
+```
+1. plan/LOGIN_AND_DECORATORS.md - 認証の仕組み
+2. plan/USER_FLOW_MAPPING.md - 権限マトリクス
+3. plan/APP_STRUCTURE.md - 全体フロー
+```
+
+#### SQL移行を検討する人
+```
+1. plan/FEATURE_ANALYSIS.md - どの機能をSQL化すべきか
+2. plan/SUPABASE_SETUP.md - 無料で始める方法
+3. plan/MIGRATION_TO_SQL.md - 本格的な移行計画
+4. plan/ARCHITECTURE_DECISIONS.md - コスト判断
+```
+
 ## デプロイ
 
 ### GCP App Engine へのデプロイ
