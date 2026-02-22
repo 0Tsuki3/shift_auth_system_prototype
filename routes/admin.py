@@ -163,26 +163,32 @@ def add_shift(month):
     if request.method == 'POST':
         try:
             from models.shift import Shift
+            from datetime import datetime as dt
             
             # フォームからデータ取得
             account = request.form.get('account')
-            date = request.form.get('date')
-            start = request.form.get('start')
-            end = request.form.get('end')
+            date_str = request.form.get('date')
+            start_str = request.form.get('start')
+            end_str = request.form.get('end')
+            
+            # 文字列を適切な型に変換
+            date_obj = dt.strptime(date_str, '%Y-%m-%d').date()
+            start_time = dt.strptime(start_str, '%H:%M').time()
+            end_time = dt.strptime(end_str, '%H:%M').time()
             
             # Shiftオブジェクト作成（id=0で新規作成）
             shift = Shift(
                 id=0,
                 account=account,
-                date=date,
-                start=start,
-                end=end
+                date=date_obj,
+                start=start_time,
+                end=end_time
             )
             
             # シフト作成（バリデーション＋保存）
             shift_service.create_shift(month, shift)
             
-            flash(f'{date} のシフトを追加しました', 'success')
+            flash(f'{date_str} のシフトを追加しました', 'success')
             return redirect(url_for('admin.view_shifts', month=month))
         
         except ValueError as e:
