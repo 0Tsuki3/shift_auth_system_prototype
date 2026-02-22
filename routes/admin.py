@@ -223,3 +223,76 @@ def add_shift(month):
         flash(f'エラー: {str(e)}', 'error')
         return redirect(url_for('admin.admin_home'))
 
+
+@admin_bp.route('/shifts/<month>/edit/<int:shift_id>', methods=['GET', 'POST'])
+@admin_required
+def edit_shift(month, shift_id):
+    """
+    シフト編集
+    
+    URL: /admin/shifts/2025-09/edit/5
+    
+    GET: 編集フォーム表示
+    POST: シフトを更新
+    """
+    if request.method == 'POST':
+        try:
+            from models.shift import Shift
+            from datetime import datetime as dt
+            
+            # フォームからデータ取得
+            account = request.form.get('account')
+            date_str = request.form.get('date')
+            start_str = request.form.get('start')
+            end_str = request.form.get('end')
+            
+            # 文字列を適切な型に変換
+            date_obj = dt.strptime(date_str, '%Y-%m-%d').date()
+            start_time = dt.strptime(start_str, '%H:%M').time()
+            end_time = dt.strptime(end_str, '%H:%M').time()
+            
+            # Shiftオブジェクト作成（既存のIDを保持）
+            shift = Shift(
+                id=shift_id,
+                account=account,
+                date=date_obj,
+                start=start_time,
+                end=end_time
+            )
+            
+            # シフト更新（バリデーション＋保存）
+            shift_service.update_shift(month, shift)
+            
+            flash(f'{date_str} のシフトを更新しました', 'success')
+            return redirect(url_for('admin.view_shifts', month=month))
+        
+        except ValueError as e:
+            flash(str(e), 'error')
+    
+    # GET: 編集フォーム表示
+    try:
+        # 既存のシフトデータを取得
+        existing_shift = shift_service.get_shifts_by_month(month)
+        shift = None
+        for s in existing_shift:
+            if s.id == shift_id:
+                shift = s
+                break
+        
+        if not shift:
+            flash(f'シフトID {shift_id} が見つかりません', 'error')
+            return redirect(url_for('admin.view_shifts', month=month))
+        
+        # スタッフリストを取得
+        staff_list = staff_service.get_all_staff()
+        
+        return render_template(
+            'admin_edit_shift.html',
+            month=month,
+            shift=shift,
+            staff_list=staff_list
+        )
+    except Exception as e:
+        flash(f'エラー: {str(e)}', 'error')
+        return redirect(url_for('admin.admin_home'))
+

@@ -241,7 +241,7 @@ def add_shift(month):
 - 必要な層: Routes のみ（リダイレクトだけ）
 - 難易度: ⭐
 
-### 3. シフト編集（中級）
+### 3. シフト編集（中級）✅ 実装済み (2026-02-22)
 - URL: `/admin/shifts/edit/<month>/<shift_id>`
 - 必要な層: Routes + HTML
 - 難易度: ⭐⭐

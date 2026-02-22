@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}シフト編集 - 管理者{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>シフトを編集 - {{ month }}</h2>
+    
+    <div style="margin: 1.5rem 0;">
+        <a href="{{ url_for('admin.view_shifts', month=month) }}" class="btn btn-secondary">← シフト一覧に戻る</a>
+    </div>
+</div>
+
+<div class="card">
+    <form method="POST" action="{{ url_for('admin.edit_shift', month=month, shift_id=shift.id) }}">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+            <div class="form-group">
+                <label for="account">スタッフ *</label>
+                <select id="account" name="account" required>
+                    <option value="">選択してください</option>
+                    {% for staff in staff_list %}
+                        <option value="{{ staff.account }}" 
+                                {% if staff.account == shift.account %}selected{% endif %}>
+                            {{ staff.full_name }} ({{ staff.position }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="date">日付 *</label>
+                <input type="date" id="date" name="date" required 
+                       min="{{ month }}-01" 
+                       max="{{ month }}-31"
+                       value="{{ shift.date }}">
+                <small style="color: #999;">{{ month }} の日付を選択してください</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="start">開始時刻 *</label>
+                <input type="time" id="start" name="start" required
+                       value="{{ shift.start }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="end">終了時刻 *</label>
+                <input type="time" id="end" name="end" required
+                       value="{{ shift.end }}">
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border-radius: 4px; border: 1px solid #ffc107;">
+            <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">⚠️ 編集中のシフト情報</h3>
+            <ul style="margin-left: 1.5rem; color: #666;">
+                <li>シフトID: <strong>{{ shift.id }}</strong></li>
+                <li>現在のスタッフ: <strong>{{ shift.account }}</strong></li>
+                <li>現在の日付: <strong>{{ shift.date }}</strong></li>
+                <li>現在の時間: <strong>{{ shift.start }} - {{ shift.end }}</strong></li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+            <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">💡 入力のヒント</h3>
+            <ul style="margin-left: 1.5rem; color: #666;">
+                <li>スタッフは必ず選択してください</li>
+                <li>日付は {{ month }} の範囲内で選択してください</li>
+                <li>開始時刻と終了時刻を正しく入力してください（例: 09:00 - 15:00）</li>
+                <li>終了時刻は開始時刻より後である必要があります</li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">シフトを更新</button>
+            <a href="{{ url_for('admin.view_shifts', month=month) }}" class="btn btn-secondary" style="margin-left: 1rem;">
+                キャンセル
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+// 開始時刻と終了時刻のバリデーション
+document.addEventListener('DOMContentLoaded', function() {
+    const startInput = document.getElementById('start');
+    const endInput = document.getElementById('end');
+    
+    function validateTimes() {
+        if (startInput.value && endInput.value) {
+            if (startInput.value >= endInput.value) {
+                endInput.setCustomValidity('終了時刻は開始時刻より後である必要があります');
+            } else {
+                endInput.setCustomValidity('');
+            }
+        }
+    }
+    
+    startInput.addEventListener('change', validateTimes);
+    endInput.addEventListener('change', validateTimes);
+});
+</script>
+{% endblock %}

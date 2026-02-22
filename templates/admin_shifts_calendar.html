@@ -41,6 +41,13 @@
                                             ({{ "%.1f"|format(shift.duration_hours) }}h)
                                         </span>
                                     </div>
+                                    <div>
+                                        <a href="{{ url_for('admin.edit_shift', month=month, shift_id=shift.id) }}" 
+                                           class="btn btn-secondary" 
+                                           style="padding: 0.25rem 0.75rem; font-size: 0.875rem; margin-right: 0.5rem;">
+                                            ✏️ 編集
+                                        </a>
+                                    </div>
                                 </div>
                             {% endfor %}
                         </div>
