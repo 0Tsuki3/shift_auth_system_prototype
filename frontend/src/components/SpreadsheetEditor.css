@@ -163,24 +163,24 @@
 
 /* 未読のシフト希望 */
 .shift-cell.has-request.unread {
-  background: #fef3c7;
-  border: 1px solid #fbbf24;
+  background: #fef3c7 !important;
+  border: 1px solid #fbbf24 !important;
 }
 
 .shift-cell.has-request.unread:hover {
-  background: #fde68a;
+  background: #fde68a !important;
   box-shadow: 0 0 0 2px #f59e0b;
   transform: scale(1.02);
 }
 
 /* 既読のシフト希望 */
 .shift-cell.has-request.read {
-  background: #d1fae5;
-  border: 1px solid #6ee7b7;
+  background: #d1fae5 !important;
+  border: 1px solid #6ee7b7 !important;
 }
 
 .shift-cell.has-request.read:hover {
-  background: #a7f3d0;
+  background: #a7f3d0 !important;
   box-shadow: 0 0 0 2px #10b981;
   transform: scale(1.02);
 }
