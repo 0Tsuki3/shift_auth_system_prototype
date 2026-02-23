@@ -40,11 +40,11 @@
                     <td>{{ "%.1f"|format(req.duration_hours()) }}h</td>
                     <td>
                         {% if req.read_status == 'unread' %}
-                            <span style="background: #fff3cd; color: #856404; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem;">
+                            <span style="background: #fbbf24; color: #78350f; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem; font-weight: bold;">
                                 📬 未読
                             </span>
                         {% elif req.read_status == 'read' %}
-                            <span style="background: #e5e7eb; color: #374151; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem;">
+                            <span style="background: #9ca3af; color: #1f2937; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem;">
                                 👁️ 既読
                             </span>
                         {% endif %}

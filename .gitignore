@@ -35,6 +35,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# React build outputs (except CSS/JS bundles)
+static/js/shift-editor/index.html
+static/js/shift-editor/vite.svg
+
 # IDE
 .vscode/
 .idea/

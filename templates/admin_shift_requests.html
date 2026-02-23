@@ -26,7 +26,7 @@
         <div style="margin-top: 1.5rem;">
             {% for item in unread_requests %}
                 {% set req = item['request'] %}
-                <div style="border: 1px solid #fbbf24; background: #fffbeb; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+                <div style="border: 2px solid #f59e0b; background: #fef3c7; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <strong style="font-size: 1.1rem;">{{ item['staff_name'] }}</strong>
@@ -78,7 +78,7 @@
         <div style="margin-top: 1.5rem;">
             {% for item in read_requests %}
                 {% set req = item['request'] %}
-                <div style="border: 1px solid #e5e7eb; background: #f9fafb; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+                <div style="border: 1px solid #d1d5db; background: #f3f4f6; padding: 1rem; margin-bottom: 1rem; border-radius: 4px; opacity: 0.8;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <strong style="font-size: 1.1rem;">{{ item['staff_name'] }}</strong>

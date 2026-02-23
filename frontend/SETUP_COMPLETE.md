@@ -79,19 +79,22 @@ Reactアプリをホストするテンプレート
 
 ### 開発時（2つのターミナル）
 
+**⚠️ 重要**: Flask/Viteは**必ず手動で起動**してください。チャット（AI）に起動させないこと。
+
 **Terminal 1: Flask**
 ```bash
 cd /Users/tsukasa/my_code/owns/shift_auth_system_prototype
-source venv/bin/activate
-python app.py
+python3 app.py
 # → http://localhost:5050
+# 停止: Ctrl + C
 ```
 
-**Terminal 2: Vite**
+**Terminal 2: Vite（フロントエンド開発時のみ）**
 ```bash
 cd /Users/tsukasa/my_code/owns/shift_auth_system_prototype/frontend
 npm run dev
 # → http://localhost:5173
+# 停止: Ctrl + C
 ```
 
 ### ビルド（本番用）

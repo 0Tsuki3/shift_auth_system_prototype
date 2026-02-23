@@ -1,5 +1,32 @@
 # 🚀 機能開発ガイド
 
+## 🔧 開発環境の起動
+
+### Flask起動（必須）
+
+**⚠️ 重要**: Flaskは**必ず手動で起動**してください。チャット（AI）に起動させないこと。
+
+```bash
+cd /Users/tsukasa/my_code/owns/shift_auth_system_prototype
+python3 app.py
+```
+
+- **起動確認**: `http://localhost:5050` にアクセス
+- **停止方法**: ターミナルで **Ctrl + C**
+- **注意**: AIに起動させるとCtrl+Cで停止できなくなります
+
+### React開発サーバー（フロントエンド開発時のみ）
+
+```bash
+cd /Users/tsukasa/my_code/owns/shift_auth_system_prototype/frontend
+npm run dev
+```
+
+- **開発用URL**: `http://localhost:5173` （Viteの開発サーバー）
+- **本番ビルド**: `npm run build` → `../static/js/shift-editor/` に出力
+
+---
+
 ## レイヤードアーキテクチャでの開発手順
 
 ### 🎯 開発の流れ（トップダウン設計 → ボトムアップ実装）
