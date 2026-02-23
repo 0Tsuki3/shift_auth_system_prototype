@@ -542,10 +542,10 @@ def api_shift_requests_list(month):
                 'start': req.start.strftime('%H:%M'),
                 'end': req.end.strftime('%H:%M'),
                 'duration_hours': req.duration_hours(),
-                'type': req.type,
+                'type': req.request_type,
                 'note': req.note,
                 'read_status': req.read_status,
-                'is_read': req.is_read,
+                'is_read': req.read_status == 'read',
                 'created_at': req.created_at.isoformat() if req.created_at else None
             })
         
@@ -645,7 +645,7 @@ def api_shift_request_toggle_read(request_id):
             'message': message,
             'request_id': request_id,
             'read_status': updated_request.read_status,
-            'is_read': updated_request.is_read
+            'is_read': updated_request.read_status == 'read'
         }), 200
     
     except ValueError as e:
