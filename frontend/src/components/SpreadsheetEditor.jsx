@@ -10,9 +10,10 @@ export function SpreadsheetEditor({ month }) {
   const [staff, setStaff] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [editingRequest, setEditingRequest] = useState(null)
+  const [editingCell, setEditingCell] = useState(null) // { account, date, request }
   const [clickTimer, setClickTimer] = useState(null)
-  const [selectedRequestIds, setSelectedRequestIds] = useState(new Set())
+  const [selectedCells, setSelectedCells] = useState(new Map()) // Map<cellKey, {account, date, request}>
+  const [lastClickedCell, setLastClickedCell] = useState(null) // Shift+クリック用
   const [copiedData, setCopiedData] = useState(null)
   const [bulkActionLoading, setBulkActionLoading] = useState(false)
 
@@ -49,64 +50,127 @@ export function SpreadsheetEditor({ month }) {
     }
   }
 
-  const toggleRead = async (requestId) => {
-    try {
-      const response = await axios.patch(`/admin/api/shift-requests/${requestId}/read`, {
-        month: month
-      })
-      
-      // フルリロードせず、ローカルステートのみ更新（スクロール位置を保持）
-      setRequests(prevRequests => 
-        prevRequests.map(req => 
-          req.id === requestId 
-            ? { ...req, is_read: response.data.is_read, read_status: response.data.read_status }
-            : req
-        )
-      )
-    } catch (error) {
-      console.error('更新エラー:', error)
-      alert('更新に失敗しました')
-    }
-  }
+  // セルキーを生成（account_date）
+  const getCellKey = (account, date) => `${account}_${date}`
 
-  const handleCellClick = (request) => {
-    // ダブルクリック検知のため、シングルクリックを遅延実行
+  // セルをクリック（シングルクリック：選択、ダブルクリック：編集）
+  const handleCellClick = (account, date, request, event) => {
+    const cellKey = getCellKey(account, date)
+    
+    // ダブルクリック検知
     if (clickTimer) {
       // 既にタイマーが動いている = ダブルクリック
       clearTimeout(clickTimer)
       setClickTimer(null)
       // ダブルクリック処理：編集モーダルを開く
-      openEditModal(request)
+      openEditModal(account, date, request)
     } else {
       // 新しいクリック：タイマーをセット
       const timer = setTimeout(() => {
-        // タイムアウト後：シングルクリック処理
-        toggleRead(request.id)
+        // タイムアウト後：シングルクリック処理（セル選択）
+        handleCellSelect(account, date, request, event)
         setClickTimer(null)
       }, 250) // 250ms以内の2回目のクリックをダブルクリックと判定
       setClickTimer(timer)
     }
   }
 
-  const openEditModal = (request) => {
-    setEditingRequest(request)
+  // セル選択（Ctrl/Shift対応）
+  const handleCellSelect = (account, date, request, event) => {
+    const cellKey = getCellKey(account, date)
+    const cellData = { account, date, request }
+
+    if (event && (event.ctrlKey || event.metaKey)) {
+      // Ctrl+クリック：トグル
+      setSelectedCells(prev => {
+        const newMap = new Map(prev)
+        if (newMap.has(cellKey)) {
+          newMap.delete(cellKey)
+        } else {
+          newMap.set(cellKey, cellData)
+        }
+        return newMap
+      })
+      setLastClickedCell(cellData)
+    } else if (event && event.shiftKey && lastClickedCell) {
+      // Shift+クリック：範囲選択（同じスタッフの日付範囲）
+      handleRangeSelect(lastClickedCell, cellData)
+    } else {
+      // 通常クリック：単一選択
+      const newMap = new Map()
+      newMap.set(cellKey, cellData)
+      setSelectedCells(newMap)
+      setLastClickedCell(cellData)
+    }
+  }
+
+  // 範囲選択（Shift+クリック）
+  const handleRangeSelect = (startCell, endCell) => {
+    // 同じスタッフの場合のみ範囲選択
+    if (startCell.account !== endCell.account) {
+      return
+    }
+
+    const startDate = new Date(startCell.date)
+    const endDate = new Date(endCell.date)
+    const [minDate, maxDate] = startDate <= endDate ? [startDate, endDate] : [endDate, startDate]
+
+    const newMap = new Map(selectedCells)
+    
+    // 日付範囲内のすべてのセルを選択
+    const currentDate = new Date(minDate)
+    while (currentDate <= maxDate) {
+      const dateStr = format(currentDate, 'yyyy-MM-dd')
+      const cellKey = getCellKey(startCell.account, dateStr)
+      
+      // requestsからリクエストを検索
+      const req = requests.find(r => r.account === startCell.account && r.date === dateStr)
+      
+      newMap.set(cellKey, {
+        account: startCell.account,
+        date: dateStr,
+        request: req || null
+      })
+      
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+
+    setSelectedCells(newMap)
+  }
+
+  const openEditModal = (account, date, request) => {
+    setEditingCell({ account, date, request })
   }
 
   const closeEditModal = () => {
-    setEditingRequest(null)
+    setEditingCell(null)
   }
 
   const handleSave = async (updatedData) => {
     try {
-      await axios.patch(`/admin/api/shift-requests/${editingRequest.id}`, {
-        month: month,
-        start: updatedData.start,
-        end: updatedData.end,
-        note: updatedData.note
-      })
+      if (editingCell.request) {
+        // 既存のリクエストを更新
+        await axios.patch(`/admin/api/shift-requests/${editingCell.request.id}`, {
+          month: month,
+          start: updatedData.start,
+          end: updatedData.end,
+          note: updatedData.note
+        })
+      } else {
+        // 新規リクエストを作成（空セルの場合）
+        await axios.post('/admin/api/shift-requests/create', {
+          month: month,
+          account: editingCell.account,
+          date: editingCell.date,
+          start: updatedData.start,
+          end: updatedData.end,
+          note: updatedData.note
+        })
+      }
       
       // データをリフレッシュ
       await fetchData()
+      closeEditModal()
     } catch (error) {
       console.error('保存エラー:', error)
       throw error
@@ -114,23 +178,34 @@ export function SpreadsheetEditor({ month }) {
   }
 
   const handleDelete = async () => {
+    if (!editingCell.request) {
+      alert('削除するリクエストがありません')
+      return
+    }
+    
     try {
-      await axios.delete(`/admin/api/shift-requests/${editingRequest.id}`, {
+      await axios.delete(`/admin/api/shift-requests/${editingCell.request.id}`, {
         data: { month: month }
       })
       
       // データをリフレッシュ
       await fetchData()
+      closeEditModal()
     } catch (error) {
       console.error('削除エラー:', error)
       throw error
     }
   }
 
-  // セルをコピー（右クリックまたはCtrl+C）
+  // セルをコピー（右クリック）
   const handleCellCopy = (request, event) => {
     if (event) {
       event.preventDefault()
+    }
+    
+    if (!request) {
+      alert('コピーするデータがありません')
+      return
     }
     
     setCopiedData({
@@ -154,13 +229,13 @@ export function SpreadsheetEditor({ month }) {
     const handleKeyDown = (event) => {
       // Ctrl+V または Cmd+V で貼り付け
       if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
-        if (copiedData && selectedRequestIds.size > 0) {
+        if (copiedData && selectedCells.size > 0) {
           event.preventDefault()
           handleBulkPaste()
         }
       }
       
-      // Ctrl+A または Cmd+A で全選択
+      // Ctrl+A または Cmd+A で全選択（リクエストがあるセルのみ）
       if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
         event.preventDefault()
         handleSelectAll()
@@ -168,71 +243,84 @@ export function SpreadsheetEditor({ month }) {
       
       // Escape で選択解除
       if (event.key === 'Escape') {
-        setSelectedRequestIds(new Set())
+        setSelectedCells(new Map())
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [copiedData, selectedRequestIds, requests])
+  }, [copiedData, selectedCells, requests, staff])
 
-  // 全選択
+  // 全選択（リクエストがあるセルのみ）
   const handleSelectAll = () => {
-    const allIds = new Set(requests.map(r => r.id))
-    setSelectedRequestIds(allIds)
+    const newMap = new Map()
+    requests.forEach(req => {
+      const cellKey = getCellKey(req.account, req.date)
+      newMap.set(cellKey, {
+        account: req.account,
+        date: req.date,
+        request: req
+      })
+    })
+    setSelectedCells(newMap)
   }
 
   // 選択解除
   const handleDeselectAll = () => {
-    setSelectedRequestIds(new Set())
+    setSelectedCells(new Map())
   }
 
-  // チェックボックスのトグル
-  const handleToggleSelect = (requestId) => {
-    setSelectedRequestIds(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(requestId)) {
-        newSet.delete(requestId)
-      } else {
-        newSet.add(requestId)
-      }
-      return newSet
-    })
-  }
-
-  // 一括貼り付け
+  // 一括貼り付け（空セルへの貼り付けで新規作成も可能）
   const handleBulkPaste = async () => {
-    if (!copiedData || selectedRequestIds.size === 0) {
+    if (!copiedData || selectedCells.size === 0) {
       alert('貼り付けるデータと貼り付け先を選択してください')
       return
     }
 
-    if (!confirm(`選択した ${selectedRequestIds.size} 件のシフト希望に貼り付けますか？`)) {
+    if (!confirm(`選択した ${selectedCells.size} 件のセルに貼り付けますか？`)) {
       return
     }
 
     setBulkActionLoading(true)
 
     try {
-      // 選択された各リクエストを更新
-      const promises = Array.from(selectedRequestIds).map(requestId =>
-        axios.patch(`/admin/api/shift-requests/${requestId}`, {
-          month: month,
-          start: copiedData.start,
-          end: copiedData.end,
-          note: copiedData.note
-        })
-      )
+      const promises = []
+      
+      selectedCells.forEach((cellData, cellKey) => {
+        if (cellData.request) {
+          // 既存のリクエストを更新
+          promises.push(
+            axios.patch(`/admin/api/shift-requests/${cellData.request.id}`, {
+              month: month,
+              start: copiedData.start,
+              end: copiedData.end,
+              note: copiedData.note
+            })
+          )
+        } else {
+          // 新規リクエストを作成
+          promises.push(
+            axios.post('/admin/api/shift-requests/create', {
+              month: month,
+              account: cellData.account,
+              date: cellData.date,
+              start: copiedData.start,
+              end: copiedData.end,
+              note: copiedData.note
+            })
+          )
+        }
+      })
 
       await Promise.all(promises)
       
-      alert(`${selectedRequestIds.size} 件のシフト希望を更新しました`)
+      alert(`${selectedCells.size} 件のセルに貼り付けました`)
       
       // データをリフレッシュ
       await fetchData()
       
       // 選択を解除
-      setSelectedRequestIds(new Set())
+      setSelectedCells(new Map())
     } catch (error) {
       console.error('一括貼り付けエラー:', error)
       alert('一括貼り付けに失敗しました')
@@ -241,14 +329,19 @@ export function SpreadsheetEditor({ month }) {
     }
   }
 
-  // 一括インポート
+  // 一括インポート（リクエストがあるセルのみ）
   const handleBulkImport = async () => {
-    if (selectedRequestIds.size === 0) {
-      alert('インポートするシフト希望を選択してください')
+    // リクエストがあるセルのみフィルター
+    const requestIds = Array.from(selectedCells.values())
+      .filter(cell => cell.request)
+      .map(cell => cell.request.id)
+    
+    if (requestIds.length === 0) {
+      alert('インポートするシフト希望を選択してください（空セルは対象外）')
       return
     }
 
-    if (!confirm(`選択した ${selectedRequestIds.size} 件のシフト希望を確定シフトにインポートしますか？`)) {
+    if (!confirm(`選択した ${requestIds.length} 件のシフト希望を確定シフトにインポートしますか？`)) {
       return
     }
 
@@ -257,7 +350,7 @@ export function SpreadsheetEditor({ month }) {
     try {
       const response = await axios.post('/admin/api/shift-requests/bulk-import', {
         month: month,
-        request_ids: Array.from(selectedRequestIds)
+        request_ids: requestIds
       })
 
       alert(response.data.message)
@@ -266,47 +359,10 @@ export function SpreadsheetEditor({ month }) {
       await fetchData()
       
       // 選択を解除
-      setSelectedRequestIds(new Set())
+      setSelectedCells(new Map())
     } catch (error) {
       console.error('一括インポートエラー:', error)
       alert('一括インポートに失敗しました')
-    } finally {
-      setBulkActionLoading(false)
-    }
-  }
-
-  // 一括既読/未読切り替え
-  const handleBulkToggleRead = async (readStatus) => {
-    if (selectedRequestIds.size === 0) {
-      alert('操作するシフト希望を選択してください')
-      return
-    }
-
-    const statusText = readStatus === 'read' ? '既読' : '未読'
-    
-    if (!confirm(`選択した ${selectedRequestIds.size} 件を${statusText}にしますか？`)) {
-      return
-    }
-
-    setBulkActionLoading(true)
-
-    try {
-      const response = await axios.post('/admin/api/shift-requests/bulk-toggle-read', {
-        month: month,
-        request_ids: Array.from(selectedRequestIds),
-        read_status: readStatus
-      })
-
-      alert(response.data.message)
-      
-      // データをリフレッシュ
-      await fetchData()
-      
-      // 選択を解除
-      setSelectedRequestIds(new Set())
-    } catch (error) {
-      console.error('一括既読/未読切り替えエラー:', error)
-      alert('一括既読/未読切り替えに失敗しました')
     } finally {
       setBulkActionLoading(false)
     }
@@ -371,12 +427,12 @@ export function SpreadsheetEditor({ month }) {
         </div>
         <div className="info-item">
           <span className="info-label">選択中:</span>
-          <span className="info-value selected">{selectedRequestIds.size}件</span>
+          <span className="info-value selected">{selectedCells.size}件</span>
         </div>
       </div>
 
       {/* 一括操作ツールバー */}
-      {selectedRequestIds.size > 0 && (
+      {selectedCells.size > 0 && (
         <div className="bulk-action-toolbar">
           <div className="toolbar-left">
             <button 
@@ -400,7 +456,7 @@ export function SpreadsheetEditor({ month }) {
                 onClick={handleBulkPaste}
                 className="btn-paste"
                 disabled={bulkActionLoading}
-                title="Ctrl+V でも貼り付け可能"
+                title="Ctrl+V でも貼り付け可能 | 空セルにも貼り付け可能"
               >
                 📋 貼り付け ({copiedData.start}-{copiedData.end})
               </button>
@@ -412,20 +468,6 @@ export function SpreadsheetEditor({ month }) {
             >
               ✅ シフトにインポート
             </button>
-            <button 
-              onClick={() => handleBulkToggleRead('read')}
-              className="btn-mark-read"
-              disabled={bulkActionLoading}
-            >
-              既読にする
-            </button>
-            <button 
-              onClick={() => handleBulkToggleRead('unread')}
-              className="btn-mark-unread"
-              disabled={bulkActionLoading}
-            >
-              未読にする
-            </button>
           </div>
         </div>
       )}
@@ -435,14 +477,6 @@ export function SpreadsheetEditor({ month }) {
         <table className="spreadsheet-table">
           <thead>
             <tr>
-              <th className="checkbox-header">
-                <input
-                  type="checkbox"
-                  checked={selectedRequestIds.size > 0 && selectedRequestIds.size === requests.length}
-                  onChange={(e) => e.target.checked ? handleSelectAll() : handleDeselectAll()}
-                  title="全選択/解除"
-                />
-              </th>
               <th className="staff-header">スタッフ</th>
               {days.map(day => (
                 <th key={day.toISOString()} className="date-header">
@@ -457,43 +491,14 @@ export function SpreadsheetEditor({ month }) {
           <tbody>
             {staff.length === 0 ? (
               <tr>
-                <td colSpan={days.length + 2} style={{ textAlign: 'center', padding: '2rem', color: '#999' }}>
+                <td colSpan={days.length + 1} style={{ textAlign: 'center', padding: '2rem', color: '#999' }}>
                   スタッフが登録されていません
                 </td>
               </tr>
             ) : (
               staff.map(s => {
-                // このスタッフの全リクエストを取得
-                const staffRequests = Object.values(requestsByStaff[s.account]).filter(r => r)
-                const allSelected = staffRequests.length > 0 && staffRequests.every(r => selectedRequestIds.has(r.id))
-                
                 return (
                   <tr key={s.account} className="staff-row">
-                    <td className="checkbox-cell">
-                      <input
-                        type="checkbox"
-                        checked={allSelected}
-                        onChange={(e) => {
-                          e.stopPropagation()
-                          if (e.target.checked) {
-                            // このスタッフの全リクエストを選択
-                            setSelectedRequestIds(prev => {
-                              const newSet = new Set(prev)
-                              staffRequests.forEach(r => newSet.add(r.id))
-                              return newSet
-                            })
-                          } else {
-                            // このスタッフの全リクエストを解除
-                            setSelectedRequestIds(prev => {
-                              const newSet = new Set(prev)
-                              staffRequests.forEach(r => newSet.delete(r.id))
-                              return newSet
-                            })
-                          }
-                        }}
-                        title="このスタッフの全希望を選択"
-                      />
-                    </td>
                     <td className="staff-cell">
                       <div className="staff-name">{s.name}</div>
                       <div className="staff-position">{s.position}</div>
@@ -501,32 +506,25 @@ export function SpreadsheetEditor({ month }) {
                     {days.map(day => {
                       const dayStr = format(day, 'yyyy-MM-dd')
                       const req = requestsByStaff[s.account][dayStr]
+                      const cellKey = getCellKey(s.account, dayStr)
+                      const isSelected = selectedCells.has(cellKey)
                       
                       return (
                         <td
                           key={dayStr}
-                          className={`shift-cell ${req ? (req.is_read ? 'has-request read' : 'has-request unread') : 'empty'} ${req && selectedRequestIds.has(req.id) ? 'selected' : ''}`}
-                          onClick={() => req && handleCellClick(req)}
+                          className={`shift-cell ${req ? (req.is_read ? 'has-request read' : 'has-request unread') : 'empty'} ${isSelected ? 'selected' : ''}`}
+                          onClick={(e) => handleCellClick(s.account, dayStr, req, e)}
                           onContextMenu={(e) => {
                             if (req) {
                               handleCellCopy(req, e)
+                            } else {
+                              e.preventDefault()
                             }
                           }}
-                          title={req ? `左クリック：既読/未読切替 | ダブルクリック：編集 | 右クリック：コピー` : ''}
+                          title={req ? `クリック：選択 | ダブルクリック：編集 | 右クリック：コピー` : `クリック：選択 | ダブルクリック：新規作成`}
                         >
                           {req ? (
                             <div className="shift-content">
-                              <div className="shift-checkbox">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedRequestIds.has(req.id)}
-                                  onChange={(e) => {
-                                    e.stopPropagation()
-                                    handleToggleSelect(req.id)
-                                  }}
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              </div>
                               <div className="shift-time">
                                 {req.start} - {req.end}
                               </div>
@@ -564,35 +562,39 @@ export function SpreadsheetEditor({ month }) {
         <div className="legend-items">
           <div className="legend-item">
             <span className="legend-box unread"></span>
-            <span className="legend-text">未読（左クリックで既読に）</span>
+            <span className="legend-text">未読シフト希望</span>
           </div>
           <div className="legend-item">
             <span className="legend-box read"></span>
-            <span className="legend-text">既読（左クリックで未読に）</span>
+            <span className="legend-text">既読シフト希望</span>
           </div>
           <div className="legend-item">
             <span className="legend-icon">💬</span>
             <span className="legend-text">備考あり（マウスオーバーで表示）</span>
           </div>
           <div className="legend-item">
-            <span className="legend-icon">✏️</span>
-            <span className="legend-text">ダブルクリック：編集</span>
+            <span className="legend-icon">🖱️</span>
+            <span className="legend-text">クリック：選択 | Ctrl+クリック：複数選択 | Shift+クリック：範囲選択</span>
           </div>
           <div className="legend-item">
-            <span className="legend-icon">🖱️</span>
-            <span className="legend-text">右クリック：コピー</span>
+            <span className="legend-icon">✏️</span>
+            <span className="legend-text">ダブルクリック：編集/新規作成</span>
+          </div>
+          <div className="legend-item">
+            <span className="legend-icon">📋</span>
+            <span className="legend-text">右クリック：コピー | Ctrl+V：貼り付け（空セル可）</span>
           </div>
           <div className="legend-item">
             <span className="legend-icon">⌨️</span>
-            <span className="legend-text">Ctrl+V：貼り付け / Ctrl+A：全選択</span>
+            <span className="legend-text">Ctrl+A：全選択 | Escape：選択解除</span>
           </div>
         </div>
       </div>
 
       {/* 編集モーダル */}
-      {editingRequest && (
+      {editingCell && (
         <EditModal
-          request={editingRequest}
+          request={editingCell.request}
           onClose={closeEditModal}
           onSave={handleSave}
           onDelete={handleDelete}

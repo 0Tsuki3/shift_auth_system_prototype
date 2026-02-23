@@ -796,6 +796,102 @@ def api_shift_request_delete(request_id):
         return jsonify({'error': str(e)}), 500
 
 
+@admin_bp.route('/api/shift-requests/create', methods=['POST'])
+@login_required
+@admin_required
+def api_shift_request_create():
+    """
+    シフト希望を新規作成（JSON）
+    
+    URL: /admin/api/shift-requests/create
+    
+    POST: 新規シフト希望を作成
+    
+    Request Body:
+        {
+            "month": "2025-09",
+            "account": "tanaka",
+            "date": "2025-09-15",
+            "start": "12:00",
+            "end": "20:00",
+            "note": "午後希望"
+        }
+    
+    Response:
+        {
+            "message": "作成しました",
+            "request": {...}
+        }
+    """
+    try:
+        from models.shift_request import ShiftRequest
+        from datetime import datetime as dt
+        
+        # リクエストボディを取得
+        data = request.get_json()
+        month = data.get('month')
+        account = data.get('account')
+        date_str = data.get('date')
+        start_str = data.get('start')
+        end_str = data.get('end')
+        note = data.get('note', '')
+        
+        if not all([month, account, date_str, start_str, end_str]):
+            return jsonify({'error': '必要なパラメータが不足しています'}), 400
+        
+        # 日付と時刻を変換
+        date_obj = dt.strptime(date_str, '%Y-%m-%d').date()
+        start_time = dt.strptime(start_str, '%H:%M').time()
+        end_time = dt.strptime(end_str, '%H:%M').time()
+        
+        # ShiftRequestオブジェクト作成
+        shift_request = ShiftRequest(
+            id=0,  # 新規作成
+            account=account,
+            date=date_obj,
+            start=start_time,
+            end=end_time,
+            request_type='fixed',
+            note=note,
+            read_status='unread'
+        )
+        
+        # 作成
+        created_request = shift_request_service.create_request(month, shift_request)
+        
+        # スタッフ情報を取得
+        staff = staff_service.get_all_staff()
+        staff_dict = {s.account: s for s in staff}
+        staff_info = staff_dict.get(created_request.account)
+        
+        # レスポンスを作成
+        response_data = {
+            'id': created_request.id,
+            'account': created_request.account,
+            'staff_name': staff_info.full_name if staff_info else created_request.account,
+            'position': staff_info.position if staff_info else '不明',
+            'date': created_request.date.isoformat(),
+            'start': created_request.start.strftime('%H:%M'),
+            'end': created_request.end.strftime('%H:%M'),
+            'duration_hours': created_request.duration_hours(),
+            'type': created_request.request_type,
+            'note': created_request.note,
+            'read_status': created_request.read_status,
+            'is_read': created_request.read_status == 'read',
+            'created_at': created_request.created_at.isoformat() if created_request.created_at else None
+        }
+        
+        return jsonify({
+            'message': '作成しました',
+            'request': response_data
+        }), 201
+    
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @admin_bp.route('/api/shift-requests/bulk-import', methods=['POST'])
 @login_required
 @admin_required
