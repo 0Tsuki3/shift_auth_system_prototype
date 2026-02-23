@@ -26,7 +26,10 @@
 5. **[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)**  
    Supabase（無料PostgreSQL）のセットアップガイド。
 
-6. **[WORKSPACE_INFO.md](./WORKSPACE_INFO.md)**  
+6. **[REACT_INTEGRATION.md](./REACT_INTEGRATION.md)** 🆕  
+   React統合計画。スプレッドシート形式UI実装と将来のアーキテクチャ移行。
+
+7. **[WORKSPACE_INFO.md](./WORKSPACE_INFO.md)**  
    このワークスペースの簡易情報。
 
 ### 既存ドキュメント

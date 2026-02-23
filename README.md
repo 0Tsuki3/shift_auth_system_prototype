@@ -197,6 +197,7 @@ git push origin main
 | `plan/FEATURE_ANALYSIS.md` | 全機能（72エンドポイント）の分析 | 機能の優先度を判断する人 |
 | `plan/ARCHITECTURE_DECISIONS.md` | 技術スタック選定理由 | 技術選定・コスト判断する人 |
 | `plan/REFACTORING_PLAN.md` | コード整理計画 | リファクタリングを検討する人 |
+| `plan/REACT_INTEGRATION.md` ⭐ | React統合計画とアーキテクチャ移行 | フロントエンド刷新する人 |
 
 ### 🔧 運用・Git管理
 
