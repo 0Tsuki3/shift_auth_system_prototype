@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card">
     <h2>シフト希望一覧 - {{ month }}</h2>
-    <p style="color: #666;">スタッフから提出されたシフト希望を確認・承認できます</p>
+    <p style="color: #666;">スタッフから提出されたシフト希望を確認できます</p>
     
     <div style="margin: 1.5rem 0;">
         <a href="{{ url_for('admin.admin_home') }}" class="btn btn-secondary">← 戻る</a>
@@ -51,15 +51,10 @@
                                 提出日時: {{ req.created_at.strftime('%Y-%m-%d %H:%M') if req.created_at else '不明' }}
                             </span>
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
+                        <div>
                             <form method="POST" action="{{ url_for('admin.import_shift_request', month=month, request_id=req.id) }}" style="display: inline;">
                                 <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem;">
-                                    ✅ シフトに追加
-                                </button>
-                            </form>
-                            <form method="POST" action="{{ url_for('admin.mark_request_as_read', month=month, request_id=req.id) }}" style="display: inline;">
-                                <button type="submit" class="btn btn-secondary" style="padding: 0.5rem 1rem;">
-                                    👁️ 既読にする
+                                    ✅ 既読にしてシフトに追加
                                 </button>
                             </form>
                         </div>
