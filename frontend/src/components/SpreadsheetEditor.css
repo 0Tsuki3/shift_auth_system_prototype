@@ -8,11 +8,101 @@
 .spreadsheet-info {
   display: flex;
   gap: 2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   padding: 1rem;
   background: #f9fafb;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
+}
+
+/* 一括操作ツールバー */
+.bulk-action-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: #eef2ff;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  gap: 1rem;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.bulk-action-toolbar button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.bulk-action-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-deselect {
+  background: #9ca3af;
+  color: white;
+}
+
+.btn-deselect:hover:not(:disabled) {
+  background: #6b7280;
+}
+
+.btn-select-all {
+  background: #667eea;
+  color: white;
+}
+
+.btn-select-all:hover:not(:disabled) {
+  background: #5568d3;
+}
+
+.btn-paste {
+  background: #8b5cf6;
+  color: white;
+}
+
+.btn-paste:hover:not(:disabled) {
+  background: #7c3aed;
+}
+
+.btn-bulk-import {
+  background: #10b981;
+  color: white;
+}
+
+.btn-bulk-import:hover:not(:disabled) {
+  background: #059669;
+}
+
+.btn-mark-read {
+  background: #22c55e;
+  color: white;
+}
+
+.btn-mark-read:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.btn-mark-unread {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-mark-unread:hover:not(:disabled) {
+  background: #d97706;
 }
 
 .info-item {
@@ -39,6 +129,10 @@
 
 .info-value.read {
   color: #10b981;
+}
+
+.info-value.selected {
+  color: #667eea;
 }
 
 /* テーブルラッパー */
@@ -75,9 +169,19 @@
   border-right: 1px solid #e5e7eb;
 }
 
-.staff-header {
+.checkbox-header {
   position: sticky;
   left: 0;
+  background: #f3f4f6;
+  z-index: 12;
+  width: 40px;
+  min-width: 40px;
+  padding: 0.75rem 0.5rem;
+}
+
+.staff-header {
+  position: sticky;
+  left: 40px;
   background: #f3f4f6;
   z-index: 11;
   min-width: 120px;
@@ -115,10 +219,33 @@
   background: #f9fafb;
 }
 
+/* チェックボックスセル */
+.checkbox-cell {
+  position: sticky;
+  left: 0;
+  background: white;
+  padding: 0.5rem;
+  text-align: center;
+  border-right: 1px solid #e5e7eb;
+  width: 40px;
+  min-width: 40px;
+  z-index: 2;
+}
+
+.staff-row:hover .checkbox-cell {
+  background: #f9fafb;
+}
+
+.checkbox-cell input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
 /* スタッフセル */
 .staff-cell {
   position: sticky;
-  left: 0;
+  left: 40px;
   background: white;
   padding: 1rem;
   border-right: 1px solid #e5e7eb;
@@ -185,12 +312,46 @@
   transform: scale(1.02);
 }
 
+/* 選択されたセル */
+.shift-cell.selected {
+  box-shadow: inset 0 0 0 3px #667eea !important;
+  position: relative;
+}
+
+.shift-cell.selected::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(102, 126, 234, 0.15);
+  pointer-events: none;
+}
+
 /* シフト内容 */
 .shift-content {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   align-items: center;
+  position: relative;
+}
+
+.shift-checkbox {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  z-index: 10;
+}
+
+.shift-checkbox input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 3px;
 }
 
 .shift-time {

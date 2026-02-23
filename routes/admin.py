@@ -795,3 +795,150 @@ def api_shift_request_delete(request_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@admin_bp.route('/api/shift-requests/bulk-import', methods=['POST'])
+@login_required
+@admin_required
+def api_shift_request_bulk_import():
+    """
+    複数のシフト希望を一括でシフトにインポート（JSON）
+    
+    URL: /admin/api/shift-requests/bulk-import
+    
+    POST: 複数のシフト希望を確定シフトに変換
+    
+    Request Body:
+        {
+            "month": "2025-09",
+            "request_ids": [1, 2, 3, 5]
+        }
+    
+    Response:
+        {
+            "message": "4件のシフト希望をインポートしました",
+            "success_count": 4,
+            "failed_ids": []
+        }
+    """
+    try:
+        from models.shift import Shift
+        
+        # リクエストボディを取得
+        data = request.get_json()
+        month = data.get('month')
+        request_ids = data.get('request_ids', [])
+        
+        if not month:
+            return jsonify({'error': 'month パラメータが必要です'}), 400
+        
+        if not request_ids or not isinstance(request_ids, list):
+            return jsonify({'error': 'request_ids パラメータが必要です（配列）'}), 400
+        
+        success_count = 0
+        failed_ids = []
+        
+        for request_id in request_ids:
+            try:
+                # シフト希望を取得
+                shift_request = shift_request_service.get_request_by_id(month, request_id)
+                
+                # 確定シフトに変換
+                shift = Shift(
+                    id=0,  # 新規作成
+                    account=shift_request.account,
+                    date=shift_request.date,
+                    start=shift_request.start,
+                    end=shift_request.end
+                )
+                
+                # シフトを作成
+                shift_service.create_shift(month, shift)
+                
+                # シフト希望を既読に更新
+                shift_request_service.mark_as_read(month, request_id)
+                
+                success_count += 1
+            
+            except Exception as e:
+                print(f'シフト希望 {request_id} のインポートに失敗: {str(e)}')
+                failed_ids.append(request_id)
+        
+        return jsonify({
+            'message': f'{success_count}件のシフト希望をインポートしました',
+            'success_count': success_count,
+            'failed_ids': failed_ids
+        }), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/api/shift-requests/bulk-toggle-read', methods=['POST'])
+@login_required
+@admin_required
+def api_shift_request_bulk_toggle_read():
+    """
+    複数のシフト希望の既読/未読を一括切り替え（JSON）
+    
+    URL: /admin/api/shift-requests/bulk-toggle-read
+    
+    POST: 複数のシフト希望を既読または未読にする
+    
+    Request Body:
+        {
+            "month": "2025-09",
+            "request_ids": [1, 2, 3, 5],
+            "read_status": "read"  // "read" or "unread"
+        }
+    
+    Response:
+        {
+            "message": "4件を既読にしました",
+            "success_count": 4,
+            "failed_ids": []
+        }
+    """
+    try:
+        # リクエストボディを取得
+        data = request.get_json()
+        month = data.get('month')
+        request_ids = data.get('request_ids', [])
+        read_status = data.get('read_status')
+        
+        if not month:
+            return jsonify({'error': 'month パラメータが必要です'}), 400
+        
+        if not request_ids or not isinstance(request_ids, list):
+            return jsonify({'error': 'request_ids パラメータが必要です（配列）'}), 400
+        
+        if read_status not in ['read', 'unread']:
+            return jsonify({'error': 'read_status は "read" または "unread" である必要があります'}), 400
+        
+        success_count = 0
+        failed_ids = []
+        
+        for request_id in request_ids:
+            try:
+                # 既読/未読を切り替え
+                if read_status == 'read':
+                    shift_request_service.mark_as_read(month, request_id)
+                else:
+                    shift_request_service.mark_as_unread(month, request_id)
+                
+                success_count += 1
+            
+            except Exception as e:
+                print(f'シフト希望 {request_id} の更新に失敗: {str(e)}')
+                failed_ids.append(request_id)
+        
+        status_text = '既読' if read_status == 'read' else '未読'
+        
+        return jsonify({
+            'message': f'{success_count}件を{status_text}にしました',
+            'success_count': success_count,
+            'failed_ids': failed_ids
+        }), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
