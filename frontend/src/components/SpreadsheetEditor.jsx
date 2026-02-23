@@ -3,12 +3,14 @@ import axios from 'axios'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import './SpreadsheetEditor.css'
+import { EditModal } from './EditModal'
 
 export function SpreadsheetEditor({ month }) {
   const [requests, setRequests] = useState([])
   const [staff, setStaff] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [editingRequest, setEditingRequest] = useState(null)
 
   useEffect(() => {
     fetchData()
@@ -45,6 +47,45 @@ export function SpreadsheetEditor({ month }) {
     } catch (error) {
       console.error('更新エラー:', error)
       alert('更新に失敗しました')
+    }
+  }
+
+  const openEditModal = (request) => {
+    setEditingRequest(request)
+  }
+
+  const closeEditModal = () => {
+    setEditingRequest(null)
+  }
+
+  const handleSave = async (updatedData) => {
+    try {
+      await axios.patch(`/admin/api/shift-requests/${editingRequest.id}`, {
+        month: month,
+        start: updatedData.start,
+        end: updatedData.end,
+        note: updatedData.note
+      })
+      
+      // データをリフレッシュ
+      await fetchData()
+    } catch (error) {
+      console.error('保存エラー:', error)
+      throw error
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`/admin/api/shift-requests/${editingRequest.id}`, {
+        data: { month: month }
+      })
+      
+      // データをリフレッシュ
+      await fetchData()
+    } catch (error) {
+      console.error('削除エラー:', error)
+      throw error
     }
   }
 
@@ -146,7 +187,8 @@ export function SpreadsheetEditor({ month }) {
                         key={dayStr}
                         className={`shift-cell ${req ? (req.is_read ? 'has-request read' : 'has-request unread') : 'empty'}`}
                         onClick={() => req && toggleRead(req.id)}
-                        title={req ? `クリックで${req.is_read ? '未読' : '既読'}に変更` : ''}
+                        onDoubleClick={() => req && openEditModal(req)}
+                        title={req ? `クリック：既読/未読切替 | ダブルクリック：編集` : ''}
                       >
                         {req ? (
                           <div className="shift-content">
@@ -196,8 +238,22 @@ export function SpreadsheetEditor({ month }) {
             <span className="legend-icon">💬</span>
             <span className="legend-text">備考あり（マウスオーバーで表示）</span>
           </div>
+          <div className="legend-item">
+            <span className="legend-icon">✏️</span>
+            <span className="legend-text">ダブルクリックで編集</span>
+          </div>
         </div>
       </div>
+
+      {/* 編集モーダル */}
+      {editingRequest && (
+        <EditModal
+          request={editingRequest}
+          onClose={closeEditModal}
+          onSave={handleSave}
+          onDelete={handleDelete}
+        />
+      )}
 
       {/* データがない場合 */}
       {totalCount === 0 && (

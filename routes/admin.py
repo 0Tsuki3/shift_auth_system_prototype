@@ -653,3 +653,145 @@ def api_shift_request_toggle_read(request_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@admin_bp.route('/api/shift-requests/<int:request_id>', methods=['PATCH'])
+@login_required
+@admin_required
+def api_shift_request_update(request_id):
+    """
+    シフト希望を更新（JSON）
+    
+    URL: /admin/api/shift-requests/5
+    
+    PATCH: 時刻・備考を更新
+    
+    Request Body:
+        {
+            "month": "2025-09",
+            "start": "13:00",
+            "end": "21:00",
+            "note": "午後希望"
+        }
+    
+    Response:
+        {
+            "message": "更新しました",
+            "request": {
+                "id": 5,
+                "account": "tanaka",
+                "date": "2025-09-15",
+                "start": "13:00",
+                "end": "21:00",
+                "note": "午後希望",
+                ...
+            }
+        }
+    """
+    try:
+        from datetime import datetime as dt
+        
+        # リクエストボディを取得
+        data = request.get_json()
+        month = data.get('month')
+        
+        if not month:
+            return jsonify({'error': 'month パラメータが必要です'}), 400
+        
+        # 既存のシフト希望を取得
+        shift_request = shift_request_service.get_request_by_id(month, request_id)
+        
+        # 更新するフィールドがあれば更新
+        if 'start' in data:
+            shift_request.start = dt.strptime(data['start'], '%H:%M').time()
+        
+        if 'end' in data:
+            shift_request.end = dt.strptime(data['end'], '%H:%M').time()
+        
+        if 'note' in data:
+            shift_request.note = data['note']
+        
+        # 更新を保存
+        updated_request = shift_request_service.update_request(month, shift_request)
+        
+        # スタッフ情報を取得
+        staff = staff_service.get_all_staff()
+        staff_dict = {s.account: s for s in staff}
+        staff_info = staff_dict.get(updated_request.account)
+        
+        # レスポンスを作成
+        response_data = {
+            'id': updated_request.id,
+            'account': updated_request.account,
+            'staff_name': staff_info.full_name if staff_info else updated_request.account,
+            'position': staff_info.position if staff_info else '不明',
+            'date': updated_request.date.isoformat(),
+            'start': updated_request.start.strftime('%H:%M'),
+            'end': updated_request.end.strftime('%H:%M'),
+            'duration_hours': updated_request.duration_hours(),
+            'type': updated_request.request_type,
+            'note': updated_request.note,
+            'read_status': updated_request.read_status,
+            'is_read': updated_request.read_status == 'read',
+            'created_at': updated_request.created_at.isoformat() if updated_request.created_at else None
+        }
+        
+        return jsonify({
+            'message': '更新しました',
+            'request': response_data
+        }), 200
+    
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/api/shift-requests/<int:request_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def api_shift_request_delete(request_id):
+    """
+    シフト希望を削除（JSON）
+    
+    URL: /admin/api/shift-requests/5
+    
+    DELETE: シフト希望を削除
+    
+    Request Body:
+        {
+            "month": "2025-09"
+        }
+    
+    Response:
+        {
+            "message": "削除しました",
+            "request_id": 5
+        }
+    """
+    try:
+        # リクエストボディからmonthを取得
+        data = request.get_json()
+        month = data.get('month')
+        
+        if not month:
+            return jsonify({'error': 'month パラメータが必要です'}), 400
+        
+        # 削除前にシフト希望の存在を確認
+        shift_request = shift_request_service.get_request_by_id(month, request_id)
+        
+        # 削除を実行
+        success = shift_request_service.delete_request(month, request_id)
+        
+        if success:
+            return jsonify({
+                'message': '削除しました',
+                'request_id': request_id
+            }), 200
+        else:
+            return jsonify({'error': '削除に失敗しました'}), 500
+    
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
