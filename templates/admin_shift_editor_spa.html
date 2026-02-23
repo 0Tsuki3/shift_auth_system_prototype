@@ -16,6 +16,9 @@
     <div id="root" data-month="{{ month }}"></div>
 </div>
 
-<!-- ビルド済みReactアプリを読み込み -->
+<!-- ビルド済みReactアプリのCSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='js/shift-editor/assets/index.css') }}">
+
+<!-- ビルド済みReactアプリのJS -->
 <script type="module" src="{{ url_for('static', filename='js/shift-editor/index.js') }}"></script>
 {% endblock %}
