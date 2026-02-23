@@ -11,10 +11,20 @@ export function SpreadsheetEditor({ month }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [editingRequest, setEditingRequest] = useState(null)
+  const [clickTimer, setClickTimer] = useState(null)
 
   useEffect(() => {
     fetchData()
   }, [month])
+
+  // コンポーネントのクリーンアップ
+  useEffect(() => {
+    return () => {
+      if (clickTimer) {
+        clearTimeout(clickTimer)
+      }
+    }
+  }, [clickTimer])
 
   const fetchData = async () => {
     setLoading(true)
@@ -38,15 +48,40 @@ export function SpreadsheetEditor({ month }) {
 
   const toggleRead = async (requestId) => {
     try {
-      await axios.patch(`/admin/api/shift-requests/${requestId}/read`, {
+      const response = await axios.patch(`/admin/api/shift-requests/${requestId}/read`, {
         month: month
       })
       
-      // データをリフレッシュ
-      fetchData()
+      // フルリロードせず、ローカルステートのみ更新（スクロール位置を保持）
+      setRequests(prevRequests => 
+        prevRequests.map(req => 
+          req.id === requestId 
+            ? { ...req, is_read: response.data.is_read, read_status: response.data.read_status }
+            : req
+        )
+      )
     } catch (error) {
       console.error('更新エラー:', error)
       alert('更新に失敗しました')
+    }
+  }
+
+  const handleCellClick = (request) => {
+    // ダブルクリック検知のため、シングルクリックを遅延実行
+    if (clickTimer) {
+      // 既にタイマーが動いている = ダブルクリック
+      clearTimeout(clickTimer)
+      setClickTimer(null)
+      // ダブルクリック処理：編集モーダルを開く
+      openEditModal(request)
+    } else {
+      // 新しいクリック：タイマーをセット
+      const timer = setTimeout(() => {
+        // タイムアウト後：シングルクリック処理
+        toggleRead(request.id)
+        setClickTimer(null)
+      }, 250) // 250ms以内の2回目のクリックをダブルクリックと判定
+      setClickTimer(timer)
     }
   }
 
@@ -186,8 +221,7 @@ export function SpreadsheetEditor({ month }) {
                       <td
                         key={dayStr}
                         className={`shift-cell ${req ? (req.is_read ? 'has-request read' : 'has-request unread') : 'empty'}`}
-                        onClick={() => req && toggleRead(req.id)}
-                        onDoubleClick={() => req && openEditModal(req)}
+                        onClick={() => req && handleCellClick(req)}
                         title={req ? `クリック：既読/未読切替 | ダブルクリック：編集` : ''}
                       >
                         {req ? (
