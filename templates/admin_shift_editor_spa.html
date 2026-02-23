@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}シフト希望編集 - {{ month }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header" style="margin-bottom: 2rem;">
+        <h1>📊 シフト希望スプレッドシート編集</h1>
+        <p>{{ month }} のシフト希望を一括管理</p>
+        <a href="{{ url_for('admin.view_shift_requests', month=month) }}" class="btn btn-secondary">
+            ← 通常の一覧画面に戻る
+        </a>
+    </div>
+
+    <!-- Reactアプリのマウント先 -->
+    <div id="root" data-month="{{ month }}"></div>
+</div>
+
+<!-- ビルド済みReactアプリを読み込み -->
+<script type="module" src="{{ url_for('static', filename='js/shift-editor/index.js') }}"></script>
+{% endblock %}

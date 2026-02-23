@@ -1,0 +1,377 @@
+/* スプレッドシートエディター */
+.spreadsheet-container {
+  width: 100%;
+  padding: 1rem 0;
+}
+
+/* 情報バー */
+.spreadsheet-info {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-label {
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1f2937;
+}
+
+.info-value.unread {
+  color: #f59e0b;
+}
+
+.info-value.read {
+  color: #10b981;
+}
+
+/* テーブルラッパー */
+.spreadsheet-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* テーブル */
+.spreadsheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  min-width: 800px;
+}
+
+/* ヘッダー */
+.spreadsheet-table thead {
+  background: #f3f4f6;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.spreadsheet-table th {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #d1d5db;
+  border-right: 1px solid #e5e7eb;
+}
+
+.staff-header {
+  position: sticky;
+  left: 0;
+  background: #f3f4f6;
+  z-index: 11;
+  min-width: 120px;
+  text-align: left;
+  padding-left: 1rem;
+}
+
+.date-header {
+  min-width: 80px;
+}
+
+.date-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.date-day {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.date-weekday {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* 行 */
+.staff-row {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.staff-row:hover {
+  background: #f9fafb;
+}
+
+/* スタッフセル */
+.staff-cell {
+  position: sticky;
+  left: 0;
+  background: white;
+  padding: 1rem;
+  border-right: 1px solid #e5e7eb;
+  min-width: 120px;
+  z-index: 1;
+}
+
+.staff-row:hover .staff-cell {
+  background: #f9fafb;
+}
+
+.staff-name {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.staff-position {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* シフトセル */
+.shift-cell {
+  padding: 0.5rem;
+  text-align: center;
+  border-right: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+  height: 80px;
+}
+
+.shift-cell.empty {
+  background: white;
+  cursor: default;
+}
+
+.shift-cell.empty:hover {
+  background: #f9fafb;
+}
+
+/* 未読のシフト希望 */
+.shift-cell.has-request.unread {
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+}
+
+.shift-cell.has-request.unread:hover {
+  background: #fde68a;
+  box-shadow: 0 0 0 2px #f59e0b;
+  transform: scale(1.02);
+}
+
+/* 既読のシフト希望 */
+.shift-cell.has-request.read {
+  background: #d1fae5;
+  border: 1px solid #6ee7b7;
+}
+
+.shift-cell.has-request.read:hover {
+  background: #a7f3d0;
+  box-shadow: 0 0 0 2px #10b981;
+  transform: scale(1.02);
+}
+
+/* シフト内容 */
+.shift-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.shift-time {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.shift-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.shift-hours {
+  font-weight: 500;
+}
+
+.shift-note {
+  cursor: help;
+}
+
+.shift-status {
+  font-size: 0.75rem;
+  margin-top: 0.125rem;
+}
+
+.shift-cell.has-request.unread .shift-status {
+  color: #f59e0b;
+  font-weight: bold;
+}
+
+.shift-cell.has-request.read .shift-status {
+  color: #10b981;
+}
+
+.shift-empty {
+  color: #d1d5db;
+  font-size: 1.25rem;
+}
+
+/* 凡例 */
+.spreadsheet-legend {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.legend-title {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.75rem;
+}
+
+.legend-items {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-box {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+}
+
+.legend-box.unread {
+  background: #fef3c7;
+  border-color: #fbbf24;
+}
+
+.legend-box.read {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+}
+
+.legend-icon {
+  font-size: 1.25rem;
+}
+
+.legend-text {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* ローディング */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* エラー */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.retry-button {
+  padding: 0.5rem 1.5rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.retry-button:hover {
+  background: #5568d3;
+}
+
+/* データなしメッセージ */
+.no-data-message {
+  text-align: center;
+  padding: 3rem;
+  color: #9ca3af;
+  font-size: 1.125rem;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .spreadsheet-info {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .staff-cell {
+    min-width: 100px;
+  }
+
+  .date-header {
+    min-width: 60px;
+  }
+
+  .shift-time {
+    font-size: 0.7rem;
+  }
+
+  .legend-items {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}

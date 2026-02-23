@@ -9,6 +9,9 @@
     
     <div style="margin: 1.5rem 0;">
         <a href="{{ url_for('admin.admin_home') }}" class="btn btn-secondary">← 戻る</a>
+        <a href="{{ url_for('admin.shift_editor_spa', month=month) }}" class="btn btn-primary" style="margin-left: 1rem;">
+            📊 スプレッドシート編集画面
+        </a>
         <span style="margin-left: 1rem; color: #666;">
             全{{ total_requests }}件の希望
         </span>

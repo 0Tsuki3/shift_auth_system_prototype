@@ -6,8 +6,8 @@
 全てのエンドポイントに @admin_required が付きます。
 """
 
-from flask import Blueprint, request, render_template, redirect, url_for, session, flash
-from core.decorators import admin_required
+from flask import Blueprint, request, render_template, redirect, url_for, session, flash, jsonify
+from core.decorators import admin_required, login_required
 from services.shift_service import ShiftService
 from services.shift_request_service import ShiftRequestService
 from services.staff_service import StaffService
@@ -466,4 +466,190 @@ def mark_request_as_read(month, request_id):
     except ValueError as e:
         flash(str(e), 'error')
         return redirect(url_for('admin.view_shift_requests', month=month))
+
+
+# ============================
+# React SPA 関連エンドポイント
+# ============================
+
+@admin_bp.route('/shift-editor/<month>')
+@login_required
+@admin_required
+def shift_editor_spa(month):
+    """
+    Reactベースのスプレッドシート編集画面
+    
+    URL: /admin/shift-editor/2025-09
+    
+    GET: React SPAをホストするHTMLページを返す
+    """
+    return render_template('admin_shift_editor_spa.html', month=month)
+
+
+# ============================
+# REST API（JSON）
+# ============================
+
+@admin_bp.route('/api/shift-requests/<month>', methods=['GET'])
+@login_required
+@admin_required
+def api_shift_requests_list(month):
+    """
+    指定月のシフト希望一覧を取得（JSON）
+    
+    URL: /admin/api/shift-requests/2025-09
+    
+    GET: シフト希望一覧を JSON 形式で返す
+    
+    Response:
+        [
+            {
+                "id": 1,
+                "account": "tanaka",
+                "staff_name": "田中太郎",
+                "position": "店長",
+                "date": "2025-09-15",
+                "start": "12:00",
+                "end": "20:00",
+                "duration_hours": 8.0,
+                "type": "fixed",
+                "note": "午後希望",
+                "read_status": "unread",
+                "is_read": false,
+                "created_at": "2025-09-01T10:00:00"
+            },
+            ...
+        ]
+    """
+    try:
+        # シフト希望を取得
+        requests = shift_request_service.get_requests_by_month(month)
+        
+        # スタッフ情報を取得
+        staff_list = staff_service.get_all_staff()
+        staff_dict = {s.account: s for s in staff_list}
+        
+        # JSON形式に変換
+        result = []
+        for req in requests:
+            staff = staff_dict.get(req.account)
+            result.append({
+                'id': req.id,
+                'account': req.account,
+                'staff_name': staff.full_name if staff else req.account,
+                'position': staff.position if staff else '不明',
+                'date': req.date.isoformat(),
+                'start': req.start.strftime('%H:%M'),
+                'end': req.end.strftime('%H:%M'),
+                'duration_hours': req.duration_hours(),
+                'type': req.type,
+                'note': req.note,
+                'read_status': req.read_status,
+                'is_read': req.is_read,
+                'created_at': req.created_at.isoformat() if req.created_at else None
+            })
+        
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/api/staff', methods=['GET'])
+@login_required
+@admin_required
+def api_staff_list():
+    """
+    スタッフ一覧を取得（JSON）
+    
+    URL: /admin/api/staff
+    
+    GET: スタッフ一覧を JSON 形式で返す
+    
+    Response:
+        [
+            {
+                "id": 1,
+                "account": "tanaka",
+                "name": "田中太郎",
+                "last_name": "田中",
+                "first_name": "太郎",
+                "position": "店長",
+                "hourly_wage": 1500
+            },
+            ...
+        ]
+    """
+    try:
+        staff_list = staff_service.get_all_staff()
+        result = [{
+            'id': s.id,
+            'account': s.account,
+            'name': s.full_name,
+            'last_name': s.last_name,
+            'first_name': s.first_name,
+            'position': s.position,
+            'hourly_wage': s.hourly_wage
+        } for s in staff_list]
+        
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/api/shift-requests/<int:request_id>/read', methods=['PATCH'])
+@login_required
+@admin_required
+def api_shift_request_toggle_read(request_id):
+    """
+    シフト希望の既読/未読をトグル（JSON）
+    
+    URL: /admin/api/shift-requests/5/read
+    
+    PATCH: 既読 ⇄ 未読 を切り替え
+    
+    Request Body:
+        {
+            "month": "2025-09"
+        }
+    
+    Response:
+        {
+            "message": "既読にしました",
+            "request_id": 5,
+            "read_status": "read",
+            "is_read": true
+        }
+    """
+    try:
+        # リクエストボディからmonthを取得
+        data = request.get_json()
+        month = data.get('month')
+        
+        if not month:
+            return jsonify({'error': 'month パラメータが必要です'}), 400
+        
+        # 現在のシフト希望を取得
+        shift_request = shift_request_service.get_request_by_id(month, request_id)
+        
+        # 既読/未読をトグル
+        if shift_request.read_status == 'unread':
+            updated_request = shift_request_service.mark_as_read(month, request_id)
+            message = '既読にしました'
+        else:
+            updated_request = shift_request_service.mark_as_unread(month, request_id)
+            message = '未読にしました'
+        
+        return jsonify({
+            'message': message,
+            'request_id': request_id,
+            'read_status': updated_request.read_status,
+            'is_read': updated_request.is_read
+        }), 200
+    
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
