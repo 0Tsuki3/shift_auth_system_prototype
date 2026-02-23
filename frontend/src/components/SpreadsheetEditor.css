@@ -26,6 +26,20 @@
   border: 2px solid #667eea;
   border-radius: 8px;
   gap: 1rem;
+  min-height: 60px; /* 最小高さを確保してレイアウトシフトを防ぐ */
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.bulk-action-toolbar.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none; /* 非表示時はクリック不可 */
+}
+
+.bulk-action-toolbar.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .toolbar-left,

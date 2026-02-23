@@ -450,46 +450,44 @@ export function SpreadsheetEditor({ month }) {
         </div>
       </div>
 
-      {/* 一括操作ツールバー */}
-      {selectedCells.size > 0 && (
-        <div className="bulk-action-toolbar">
-          <div className="toolbar-left">
-            <button 
-              onClick={handleDeselectAll}
-              className="btn-deselect"
-              disabled={bulkActionLoading}
-            >
-              選択解除
-            </button>
-            <button 
-              onClick={handleSelectAll}
-              className="btn-select-all"
-              disabled={bulkActionLoading}
-            >
-              全選択
-            </button>
-          </div>
-          <div className="toolbar-right">
-            {copiedData && (
-              <button 
-                onClick={handleBulkPaste}
-                className="btn-paste"
-                disabled={bulkActionLoading}
-                title="Ctrl+V でも貼り付け可能 | 空セルにも貼り付け可能"
-              >
-                📋 貼り付け ({copiedData.start}-{copiedData.end})
-              </button>
-            )}
-            <button 
-              onClick={handleBulkImport}
-              className="btn-bulk-import"
-              disabled={bulkActionLoading}
-            >
-              ✅ シフトにインポート
-            </button>
-          </div>
+      {/* 一括操作ツールバー（常にスペース確保、選択時のみボタン表示） */}
+      <div className={`bulk-action-toolbar ${selectedCells.size > 0 ? 'visible' : 'hidden'}`}>
+        <div className="toolbar-left">
+          <button 
+            onClick={handleDeselectAll}
+            className="btn-deselect"
+            disabled={bulkActionLoading}
+          >
+            選択解除
+          </button>
+          <button 
+            onClick={handleSelectAll}
+            className="btn-select-all"
+            disabled={bulkActionLoading}
+          >
+            全選択
+          </button>
         </div>
-      )}
+        <div className="toolbar-right">
+          {copiedData && (
+            <button 
+              onClick={handleBulkPaste}
+              className="btn-paste"
+              disabled={bulkActionLoading}
+              title="Ctrl+V でも貼り付け可能 | 空セルにも貼り付け可能"
+            >
+              📋 貼り付け ({copiedData.start}-{copiedData.end})
+            </button>
+          )}
+          <button 
+            onClick={handleBulkImport}
+            className="btn-bulk-import"
+            disabled={bulkActionLoading}
+          >
+            ✅ シフトにインポート
+          </button>
+        </div>
+      </div>
 
       {/* スプレッドシートテーブル */}
       <div className="spreadsheet-wrapper">
