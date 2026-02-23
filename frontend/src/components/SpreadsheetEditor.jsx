@@ -16,6 +16,7 @@ export function SpreadsheetEditor({ month }) {
   const [lastClickedCell, setLastClickedCell] = useState(null) // Shift+クリック用
   const [copiedData, setCopiedData] = useState(null)
   const [bulkActionLoading, setBulkActionLoading] = useState(false)
+  const [toastMessage, setToastMessage] = useState(null) // トースト通知用
 
   useEffect(() => {
     fetchData()
@@ -197,14 +198,19 @@ export function SpreadsheetEditor({ month }) {
     }
   }
 
-  // セルをコピー（右クリック）
+  // トースト通知を表示
+  const showToast = (message, duration = 2000) => {
+    setToastMessage(message)
+    setTimeout(() => setToastMessage(null), duration)
+  }
+
+  // セルをコピー（右クリックまたはCtrl+C）
   const handleCellCopy = (request, event) => {
     if (event) {
       event.preventDefault()
     }
     
     if (!request) {
-      alert('コピーするデータがありません')
       return
     }
     
@@ -220,13 +226,31 @@ export function SpreadsheetEditor({ month }) {
       console.error('クリップボードへのコピーに失敗:', err)
     })
     
-    // ビジュアルフィードバック
-    alert(`コピーしました: ${copyText}`)
+    // トースト通知
+    showToast(`📋 コピー: ${copyText}`)
+  }
+
+  // 選択中のセルからコピー（Ctrl+C用）
+  const handleCopyFromSelection = () => {
+    // 選択中のセルから最初のリクエストを取得
+    const firstCellWithRequest = Array.from(selectedCells.values()).find(cell => cell.request)
+    
+    if (firstCellWithRequest && firstCellWithRequest.request) {
+      handleCellCopy(firstCellWithRequest.request, null)
+    }
   }
 
   // キーボードショートカット処理
   useEffect(() => {
     const handleKeyDown = (event) => {
+      // Ctrl+C または Cmd+C でコピー
+      if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+        if (selectedCells.size > 0) {
+          event.preventDefault()
+          handleCopyFromSelection()
+        }
+      }
+      
       // Ctrl+V または Cmd+V で貼り付け
       if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
         if (copiedData && selectedCells.size > 0) {
@@ -273,11 +297,6 @@ export function SpreadsheetEditor({ month }) {
   // 一括貼り付け（空セルへの貼り付けで新規作成も可能）
   const handleBulkPaste = async () => {
     if (!copiedData || selectedCells.size === 0) {
-      alert('貼り付けるデータと貼り付け先を選択してください')
-      return
-    }
-
-    if (!confirm(`選択した ${selectedCells.size} 件のセルに貼り付けますか？`)) {
       return
     }
 
@@ -314,7 +333,7 @@ export function SpreadsheetEditor({ month }) {
 
       await Promise.all(promises)
       
-      alert(`${selectedCells.size} 件のセルに貼り付けました`)
+      showToast(`✅ ${selectedCells.size} 件のセルに貼り付けました`)
       
       // データをリフレッシュ
       await fetchData()
@@ -323,7 +342,7 @@ export function SpreadsheetEditor({ month }) {
       setSelectedCells(new Map())
     } catch (error) {
       console.error('一括貼り付けエラー:', error)
-      alert('一括貼り付けに失敗しました')
+      showToast('❌ 一括貼り付けに失敗しました')
     } finally {
       setBulkActionLoading(false)
     }
@@ -337,7 +356,7 @@ export function SpreadsheetEditor({ month }) {
       .map(cell => cell.request.id)
     
     if (requestIds.length === 0) {
-      alert('インポートするシフト希望を選択してください（空セルは対象外）')
+      showToast('⚠️ インポートするシフト希望を選択してください')
       return
     }
 
@@ -353,7 +372,7 @@ export function SpreadsheetEditor({ month }) {
         request_ids: requestIds
       })
 
-      alert(response.data.message)
+      showToast(`✅ ${response.data.message}`)
       
       // データをリフレッシュ
       await fetchData()
@@ -362,7 +381,7 @@ export function SpreadsheetEditor({ month }) {
       setSelectedCells(new Map())
     } catch (error) {
       console.error('一括インポートエラー:', error)
-      alert('一括インポートに失敗しました')
+      showToast('❌ 一括インポートに失敗しました')
     } finally {
       setBulkActionLoading(false)
     }
@@ -582,7 +601,7 @@ export function SpreadsheetEditor({ month }) {
           </div>
           <div className="legend-item">
             <span className="legend-icon">📋</span>
-            <span className="legend-text">右クリック：コピー | Ctrl+V：貼り付け（空セル可）</span>
+            <span className="legend-text">Ctrl+C：コピー | Ctrl+V：貼り付け（空セル可） | 右クリック：コピー</span>
           </div>
           <div className="legend-item">
             <span className="legend-icon">⌨️</span>
@@ -605,6 +624,13 @@ export function SpreadsheetEditor({ month }) {
       {totalCount === 0 && (
         <div className="no-data-message">
           <p>📭 この月のシフト希望はまだ提出されていません</p>
+        </div>
+      )}
+
+      {/* トースト通知 */}
+      {toastMessage && (
+        <div className="toast-notification">
+          {toastMessage}
         </div>
       )}
     </div>
