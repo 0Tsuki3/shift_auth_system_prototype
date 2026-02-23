@@ -39,17 +39,13 @@
                     <td>{{ req.start.strftime('%H:%M') }} - {{ req.end.strftime('%H:%M') }}</td>
                     <td>{{ "%.1f"|format(req.duration_hours()) }}h</td>
                     <td>
-                        {% if req.status == 'pending' %}
+                        {% if req.read_status == 'unread' %}
                             <span style="background: #fff3cd; color: #856404; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem;">
-                                ⏳ 保留中
+                                📬 未読
                             </span>
-                        {% elif req.status == 'approved' %}
-                            <span style="background: #d4edda; color: #155724; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem;">
-                                ✅ 承認済み
-                            </span>
-                        {% elif req.status == 'rejected' %}
-                            <span style="background: #f8d7da; color: #721c24; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem;">
-                                ❌ 却下
+                        {% elif req.read_status == 'read' %}
+                            <span style="background: #e5e7eb; color: #374151; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem;">
+                                👁️ 既読
                             </span>
                         {% endif %}
                     </td>
@@ -62,7 +58,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% if req.status == 'pending' %}
+                        {% if req.read_status == 'unread' %}
                             <form method="POST" action="{{ url_for('staff.delete_request', month=month, request_id=req.id) }}" 
                                   onsubmit="return confirm('このシフト希望を削除しますか？');" 
                                   style="display: inline;">
@@ -80,12 +76,11 @@
         <div style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
             <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">📌 ステータスについて</h3>
             <ul style="margin-left: 1.5rem; color: #666;">
-                <li><strong>⏳ 保留中</strong>: 管理者がまだ確認していません</li>
-                <li><strong>✅ 承認済み</strong>: シフトに反映されました</li>
-                <li><strong>❌ 却下</strong>: 残念ながら希望を反映できませんでした</li>
+                <li><strong>📬 未読</strong>: 管理者がまだ確認していません</li>
+                <li><strong>👁️ 既読</strong>: 管理者が確認しました</li>
             </ul>
             <p style="margin-top: 0.5rem; color: #666;">
-                保留中の希望のみ削除できます。承認済み・却下の希望を変更したい場合は管理者に相談してください。
+                未読の希望のみ削除できます。既読の希望を変更したい場合は管理者に相談してください。
             </p>
         </div>
     {% else %}

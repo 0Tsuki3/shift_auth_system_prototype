@@ -15,13 +15,13 @@
     </div>
 </div>
 
-<!-- 未承認のシフト希望 -->
+<!-- 未読のシフト希望 -->
 <div class="card">
-    <h3 style="color: #f59e0b;">⏳ 未承認の希望（{{ pending_requests|length }}件）</h3>
+    <h3 style="color: #f59e0b;">📬 未読の希望（{{ unread_requests|length }}件）</h3>
     
-    {% if pending_requests %}
+    {% if unread_requests %}
         <div style="margin-top: 1.5rem;">
-            {% for item in pending_requests %}
+            {% for item in unread_requests %}
                 {% set req = item['request'] %}
                 <div style="border: 1px solid #fbbf24; background: #fffbeb; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -54,12 +54,12 @@
                         <div style="display: flex; gap: 0.5rem;">
                             <form method="POST" action="{{ url_for('admin.import_shift_request', month=month, request_id=req.id) }}" style="display: inline;">
                                 <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem;">
-                                    ✅ 承認してシフトに追加
+                                    ✅ シフトに追加
                                 </button>
                             </form>
-                            <form method="POST" action="{{ url_for('admin.reject_shift_request', month=month, request_id=req.id) }}" style="display: inline;">
-                                <button type="submit" class="btn btn-danger" style="padding: 0.5rem 1rem;">
-                                    ❌ 却下
+                            <form method="POST" action="{{ url_for('admin.mark_request_as_read', month=month, request_id=req.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-secondary" style="padding: 0.5rem 1rem;">
+                                    👁️ 既読にする
                                 </button>
                             </form>
                         </div>
@@ -68,19 +68,19 @@
             {% endfor %}
         </div>
     {% else %}
-        <p style="color: #999; margin-top: 1rem;">未承認のシフト希望はありません</p>
+        <p style="color: #999; margin-top: 1rem;">未読のシフト希望はありません</p>
     {% endif %}
 </div>
 
-<!-- 承認済みのシフト希望 -->
+<!-- 既読のシフト希望 -->
 <div class="card">
-    <h3 style="color: #10b981;">✅ 承認済み（{{ approved_requests|length }}件）</h3>
+    <h3 style="color: #6b7280;">👁️ 既読の希望（{{ read_requests|length }}件）</h3>
     
-    {% if approved_requests %}
+    {% if read_requests %}
         <div style="margin-top: 1.5rem;">
-            {% for item in approved_requests %}
+            {% for item in read_requests %}
                 {% set req = item['request'] %}
-                <div style="border: 1px solid #d1fae5; background: #f0fdf4; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+                <div style="border: 1px solid #e5e7eb; background: #f9fafb; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <strong style="font-size: 1.1rem;">{{ item['staff_name'] }}</strong>
@@ -105,8 +105,8 @@
                             {% endif %}
                         </div>
                         <div>
-                            <span style="color: #10b981; font-weight: bold;">
-                                ✅ 承認済み
+                            <span style="color: #6b7280; font-weight: bold;">
+                                👁️ 既読
                             </span>
                         </div>
                     </div>
@@ -114,52 +114,8 @@
             {% endfor %}
         </div>
     {% else %}
-        <p style="color: #999; margin-top: 1rem;">承認済みのシフト希望はありません</p>
+        <p style="color: #999; margin-top: 1rem;">既読のシフト希望はありません</p>
     {% endif %}
 </div>
-
-<!-- 却下されたシフト希望 -->
-{% if rejected_requests %}
-<div class="card">
-    <h3 style="color: #ef4444;">❌ 却下された希望（{{ rejected_requests|length }}件）</h3>
-    
-    <div style="margin-top: 1.5rem;">
-        {% for item in rejected_requests %}
-            {% set req = item['request'] %}
-            <div style="border: 1px solid #fee2e2; background: #fef2f2; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong style="font-size: 1.1rem;">{{ item['staff_name'] }}</strong>
-                        <span style="color: #666; margin-left: 1rem;">
-                            {{ item['position'] }}
-                        </span>
-                        <br>
-                        <span style="color: #333; margin-top: 0.5rem; display: inline-block;">
-                            📅 {{ req.date.strftime('%Y-%m-%d') }} ({{ ['月', '火', '水', '木', '金', '土', '日'][req.date.weekday()] }})
-                        </span>
-                        <span style="color: #666; margin-left: 1rem;">
-                            🕐 {{ req.start.strftime('%H:%M') }} - {{ req.end.strftime('%H:%M') }}
-                        </span>
-                        <span style="color: #999; margin-left: 0.5rem;">
-                            ({{ "%.1f"|format(req.duration_hours()) }}h)
-                        </span>
-                        {% if req.note %}
-                            <br>
-                            <span style="color: #666; margin-top: 0.5rem; display: inline-block;">
-                                💬 {{ req.note }}
-                            </span>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <span style="color: #ef4444; font-weight: bold;">
-                            ❌ 却下済み
-                        </span>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
 
 {% endblock %}
