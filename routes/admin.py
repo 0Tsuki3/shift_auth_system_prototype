@@ -11,6 +11,9 @@ from core.decorators import admin_required, login_required
 from services.shift_service import ShiftService
 from services.shift_request_service import ShiftRequestService
 from services.staff_service import StaffService
+from services.break_service import BreakService
+from services.break_request_service import BreakRequestService
+from services.shift_diff_service import ShiftDiffService
 from presenters.shift_presenter import ShiftPresenter
 from datetime import datetime
 
@@ -21,6 +24,9 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 shift_service = ShiftService()
 shift_request_service = ShiftRequestService()
 staff_service = StaffService()
+break_service = BreakService()
+break_request_service = BreakRequestService()
+shift_diff_service = ShiftDiffService()
 shift_presenter = ShiftPresenter()
 
 
@@ -1034,6 +1040,332 @@ def api_shift_request_bulk_toggle_read():
             'success_count': success_count,
             'failed_ids': failed_ids
         }), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# ========================================
+# 休憩CRUD API
+# ========================================
+
+@admin_bp.route('/api/breaks/<month>', methods=['GET'])
+@login_required
+@admin_required
+def api_get_breaks(month):
+    """
+    月別休憩一覧取得（JSON）
+    
+    URL: /admin/api/breaks/<month>
+    
+    GET: 指定月の休憩を全件取得
+    
+    Response:
+        [
+            {
+                "id": 1,
+                "shift_id": 123,
+                "break_start": "14:00",
+                "break_end": "15:00"
+            },
+            ...
+        ]
+    """
+    try:
+        breaks = break_service.get_breaks_by_month(month)
+        
+        return jsonify([{
+            'id': b.id,
+            'shift_id': b.shift_id,
+            'break_start': b.break_start.strftime('%H:%M'),
+            'break_end': b.break_end.strftime('%H:%M')
+        } for b in breaks]), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/api/breaks/<month>/shift/<int:shift_id>', methods=['GET'])
+@login_required
+@admin_required
+def api_get_breaks_by_shift(month, shift_id):
+    """
+    シフトIDで休憩取得（JSON）
+    
+    URL: /admin/api/breaks/<month>/shift/<shift_id>
+    
+    GET: 指定シフトの休憩を全件取得
+    """
+    try:
+        breaks = break_service.get_breaks_by_shift_id(month, shift_id)
+        
+        return jsonify([{
+            'id': b.id,
+            'shift_id': b.shift_id,
+            'break_start': b.break_start.strftime('%H:%M'),
+            'break_end': b.break_end.strftime('%H:%M')
+        } for b in breaks]), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/api/breaks/<month>', methods=['POST'])
+@login_required
+@admin_required
+def api_create_break(month):
+    """
+    休憩作成（JSON）
+    
+    URL: /admin/api/breaks/<month>
+    
+    POST: 新しい休憩を作成
+    
+    Request Body:
+        {
+            "shift_id": 123,
+            "break_start": "14:00",
+            "break_end": "15:00"
+        }
+    
+    Response:
+        {
+            "id": 1,
+            "shift_id": 123,
+            "break_start": "14:00",
+            "break_end": "15:00"
+        }
+    """
+    try:
+        from models.break_model import Break
+        
+        data = request.get_json()
+        
+        # Breakオブジェクト作成
+        break_obj = Break(
+            id=0,
+            shift_id=int(data['shift_id']),
+            break_start=datetime.strptime(data['break_start'], '%H:%M').time(),
+            break_end=datetime.strptime(data['break_end'], '%H:%M').time()
+        )
+        
+        # シフトを取得（バリデーション用）
+        shift = shift_service.get_shift_by_id(month, break_obj.shift_id)
+        
+        # 休憩を作成
+        saved_break = break_service.create_break(month, break_obj, shift)
+        
+        return jsonify({
+            'id': saved_break.id,
+            'shift_id': saved_break.shift_id,
+            'break_start': saved_break.break_start.strftime('%H:%M'),
+            'break_end': saved_break.break_end.strftime('%H:%M')
+        }), 201
+    
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/api/breaks/<month>/<int:break_id>', methods=['PATCH'])
+@login_required
+@admin_required
+def api_update_break(month, break_id):
+    """
+    休憩更新（JSON）
+    
+    URL: /admin/api/breaks/<month>/<break_id>
+    
+    PATCH: 休憩を更新
+    
+    Request Body:
+        {
+            "break_start": "14:30",
+            "break_end": "15:30"
+        }
+    """
+    try:
+        from models.break_model import Break
+        
+        data = request.get_json()
+        
+        # 既存の休憩を取得
+        existing_break = break_service.get_breaks_by_month(month)
+        target_break = next((b for b in existing_break if b.id == break_id), None)
+        
+        if not target_break:
+            return jsonify({'error': '休憩が見つかりません'}), 404
+        
+        # Breakオブジェクト作成（更新）
+        break_obj = Break(
+            id=break_id,
+            shift_id=target_break.shift_id,
+            break_start=datetime.strptime(data['break_start'], '%H:%M').time(),
+            break_end=datetime.strptime(data['break_end'], '%H:%M').time()
+        )
+        
+        # シフトを取得（バリデーション用）
+        shift = shift_service.get_shift_by_id(month, break_obj.shift_id)
+        
+        # 休憩を更新
+        saved_break = break_service.update_break(month, break_obj, shift)
+        
+        return jsonify({
+            'id': saved_break.id,
+            'shift_id': saved_break.shift_id,
+            'break_start': saved_break.break_start.strftime('%H:%M'),
+            'break_end': saved_break.break_end.strftime('%H:%M')
+        }), 200
+    
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/api/breaks/<month>/<int:break_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def api_delete_break(month, break_id):
+    """
+    休憩削除（JSON）
+    
+    URL: /admin/api/breaks/<month>/<break_id>
+    
+    DELETE: 休憩を削除
+    """
+    try:
+        success = break_service.delete_break(month, break_id)
+        
+        if success:
+            return jsonify({'message': '休憩を削除しました'}), 200
+        else:
+            return jsonify({'error': '休憩が見つかりません'}), 404
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# ========================================
+# 休憩希望CRUD API
+# ========================================
+
+@admin_bp.route('/api/break-requests/<month>', methods=['GET'])
+@login_required
+@admin_required
+def api_get_break_requests(month):
+    """
+    月別休憩希望一覧取得（JSON）
+    
+    URL: /admin/api/break-requests/<month>
+    """
+    try:
+        break_requests = break_request_service.get_break_requests_by_month(month)
+        
+        return jsonify([{
+            'id': br.id,
+            'shift_request_id': br.shift_request_id,
+            'break_start': br.break_start.strftime('%H:%M'),
+            'break_end': br.break_end.strftime('%H:%M')
+        } for br in break_requests]), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/api/break-requests/<month>/shift-request/<int:shift_request_id>', methods=['GET'])
+@login_required
+@admin_required
+def api_get_break_requests_by_shift_request(month, shift_request_id):
+    """
+    シフト希望IDで休憩希望取得（JSON）
+    
+    URL: /admin/api/break-requests/<month>/shift-request/<shift_request_id>
+    """
+    try:
+        break_requests = break_request_service.get_break_requests_by_shift_request_id(month, shift_request_id)
+        
+        return jsonify([{
+            'id': br.id,
+            'shift_request_id': br.shift_request_id,
+            'break_start': br.break_start.strftime('%H:%M'),
+            'break_end': br.break_end.strftime('%H:%M')
+        } for br in break_requests]), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# ========================================
+# 差分表示API
+# ========================================
+
+@admin_bp.route('/api/shift-diff/<month>', methods=['GET'])
+@login_required
+@admin_required
+def api_get_shift_diff(month):
+    """
+    シフト希望と実際のシフトの差分を取得（JSON）
+    
+    URL: /admin/api/shift-diff/<month>
+    
+    GET: 指定月の全スタッフの差分を計算
+    
+    Response:
+        {
+            "1": {  // shift_request_id
+                "has_diff": true,
+                "status": "modified",
+                "start_diff_minutes": 60,
+                "end_diff_minutes": -30,
+                "start_diff_text": "+1時間",
+                "end_diff_text": "-30分",
+                "summary": "開始 +1時間、終了 -30分"
+            },
+            ...
+        }
+    """
+    try:
+        # シフト希望を全件取得
+        shift_requests = shift_request_service.get_requests_by_month(month)
+        
+        # 実際のシフトを全件取得
+        actual_shifts = shift_service.get_shifts_by_month(month)
+        
+        # 差分を計算
+        diff_result = shift_diff_service.calculate_batch_diff(shift_requests, actual_shifts)
+        
+        return jsonify(diff_result), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/api/shift-diff/<month>/<int:shift_request_id>', methods=['GET'])
+@login_required
+@admin_required
+def api_get_shift_diff_single(month, shift_request_id):
+    """
+    特定のシフト希望と実際のシフトの差分を取得（JSON）
+    
+    URL: /admin/api/shift-diff/<month>/<shift_request_id>
+    """
+    try:
+        # シフト希望を取得
+        shift_request = shift_request_service.get_request_by_id(month, shift_request_id)
+        
+        if not shift_request:
+            return jsonify({'error': 'シフト希望が見つかりません'}), 404
+        
+        # 実際のシフトを検索
+        actual_shifts = shift_service.get_shifts_by_account(month, shift_request.account)
+        actual_shift = next((s for s in actual_shifts if s.date == shift_request.date), None)
+        
+        # 差分を計算
+        diff = shift_diff_service.calculate_diff(shift_request, actual_shift)
+        
+        return jsonify(diff), 200
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500

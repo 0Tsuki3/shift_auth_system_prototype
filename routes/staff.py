@@ -11,6 +11,8 @@ from core.decorators import login_required
 from services.shift_service import ShiftService
 from services.staff_service import StaffService
 from services.shift_request_service import ShiftRequestService
+from services.break_request_service import BreakRequestService
+from services.shift_diff_service import ShiftDiffService
 from presenters.shift_presenter import ShiftPresenter
 from models.shift_request import ShiftRequest
 from datetime import datetime, date, time
@@ -22,6 +24,8 @@ staff_bp = Blueprint('staff', __name__, url_prefix='/staff')
 shift_service = ShiftService()
 staff_service = StaffService()
 shift_request_service = ShiftRequestService()
+break_request_service = BreakRequestService()
+shift_diff_service = ShiftDiffService()
 shift_presenter = ShiftPresenter()
 
 
@@ -246,4 +250,74 @@ def delete_request(month, request_id):
     except ValueError as e:
         flash(str(e), 'error')
         return redirect(url_for('staff.view_requests', month=month))
+
+
+# ========================================
+# 休憩希望API（スタッフ用）
+# ========================================
+
+@staff_bp.route('/api/break-requests/<month>/my', methods=['GET'])
+@login_required
+def api_get_my_break_requests(month):
+    """
+    自分の休憩希望一覧取得（JSON）
+    
+    URL: /staff/api/break-requests/<month>/my
+    """
+    try:
+        from flask import jsonify
+        
+        account = session.get('account')
+        
+        # 自分のシフト希望を取得
+        shift_requests = shift_request_service.get_requests_by_account(month, account)
+        
+        # 各シフト希望に紐づく休憩希望を取得
+        result = []
+        for sr in shift_requests:
+            break_requests = break_request_service.get_break_requests_by_shift_request_id(month, sr.id)
+            result.append({
+                'shift_request_id': sr.id,
+                'date': sr.date.strftime('%Y-%m-%d'),
+                'start': sr.start.strftime('%H:%M'),
+                'end': sr.end.strftime('%H:%M'),
+                'break_requests': [{
+                    'id': br.id,
+                    'break_start': br.break_start.strftime('%H:%M'),
+                    'break_end': br.break_end.strftime('%H:%M')
+                } for br in break_requests]
+            })
+        
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@staff_bp.route('/api/shift-diff/<month>/my', methods=['GET'])
+@login_required
+def api_get_my_shift_diff(month):
+    """
+    自分のシフト希望と実際のシフトの差分を取得（JSON）
+    
+    URL: /staff/api/shift-diff/<month>/my
+    """
+    try:
+        from flask import jsonify
+        
+        account = session.get('account')
+        
+        # 自分のシフト希望を取得
+        shift_requests = shift_request_service.get_requests_by_account(month, account)
+        
+        # 自分の実際のシフトを取得
+        actual_shifts = shift_service.get_shifts_by_account(month, account)
+        
+        # 差分を計算
+        diff_result = shift_diff_service.calculate_batch_diff(shift_requests, actual_shifts)
+        
+        return jsonify(diff_result), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
