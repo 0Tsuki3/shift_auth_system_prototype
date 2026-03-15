@@ -414,7 +414,7 @@ sequenceDiagram
 2. **@login_required**: セッション確認 → なければログインページへ
 3. **@admin_required**: ロール確認 → 管理者でなければ403エラー
 
-詳細は [`plan/LOGIN_AND_DECORATORS.md`](./plan/LOGIN_AND_DECORATORS.md) を参照。
+詳細は [`LOGIN_AND_DECORATORS.md`](./LOGIN_AND_DECORATORS.md) を参照。
 
 ---
 
@@ -432,10 +432,10 @@ sequenceDiagram
 
 ### 関連ドキュメント
 
-- **アーキテクチャ詳細**: [`plan/LAYERED_ARCHITECTURE.md`](./plan/LAYERED_ARCHITECTURE.md)
-- **開発ガイド**: [`DEVELOPMENT_GUIDE.md`](./DEVELOPMENT_GUIDE.md)
-- **認証の仕組み**: [`plan/LOGIN_AND_DECORATORS.md`](./plan/LOGIN_AND_DECORATORS.md)
-- **全体構造**: [`plan/APP_STRUCTURE.md`](./plan/APP_STRUCTURE.md)
+- **アーキテクチャ詳細**: [`LAYERED_ARCHITECTURE.md`](./LAYERED_ARCHITECTURE.md)
+- **開発ガイド**: [`../getting-started/DEVELOPMENT_GUIDE.md`](../getting-started/DEVELOPMENT_GUIDE.md)
+- **認証の仕組み**: [`LOGIN_AND_DECORATORS.md`](./LOGIN_AND_DECORATORS.md)
+- **全体構造**: [`APP_STRUCTURE.md`](./APP_STRUCTURE.md)
 
 ---
 

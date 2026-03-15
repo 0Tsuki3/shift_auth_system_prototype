@@ -58,3 +58,6 @@ Thumbs.db
 
 # バックアップファイル
 *.backup_*
+
+# Google Cloud SDK (large binaries, not needed in repo)
+google-cloud-sdk/

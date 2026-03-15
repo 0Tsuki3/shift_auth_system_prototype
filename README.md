@@ -11,7 +11,9 @@
 - ✅ **シフト希望インポート**: 管理者がシフト希望を確認・承認・却下
 - ✅ **給料計算**: 月別給料明細の表示
 
-詳細な機能リストは [`TASKS.md`](./TASKS.md) を参照してください。
+詳細な機能リストは [`TASKS.md`](./TASKS.md) を参照してください。  
+開発計画と進捗は [`PLAN.md`](./PLAN.md) を参照してください。  
+全ドキュメント一覧は [`INDEX.md`](./INDEX.md) を参照してください。
 
 ## プロジェクト構造
 
@@ -63,12 +65,14 @@ shift_auth_system_prototype_gcp/
 │   ├── staff.csv           # スタッフマスタ
 │   └── auth.csv            # 認証情報
 │
-├── plan/                    # 設計書
-│   ├── LAYERED_ARCHITECTURE.md
-│   ├── APP_STRUCTURE.md
-│   └── ...
+├── docs/                    # ドキュメント
+│   ├── getting-started/    # 開発ガイド
+│   ├── architecture/       # アーキテクチャ設計
+│   ├── planning/           # 計画・分析
+│   ├── migration/          # 移行計画
+│   └── archive/            # 古いドキュメント
 │
-└── old/                     # 旧ファイル（参照用）
+└── old/                     # 旧コード（参照用）
 ```
 
 ## セットアップ
@@ -118,7 +122,7 @@ python3 app.py
 6. **Presenter**: 表示用データの整形
 7. **Presentation**: ルーティングとHTTPハンドリング
 
-詳細は `plan/LAYERED_ARCHITECTURE.md` を参照してください。
+詳細は [`docs/architecture/LAYERED_ARCHITECTURE.md`](./docs/architecture/LAYERED_ARCHITECTURE.md) を参照してください。
 
 ## 開発ガイド
 
@@ -158,93 +162,71 @@ git push origin main
 
 **⚠️ 重要**: このプロジェクトでは、機能実装やバグ修正を行った際は**必ずGitにコミット**することを義務付けます。バージョン管理を徹底することで、変更履歴の追跡とロールバックを可能にします。
 
-詳細なGit操作については `GIT_GUIDE.md` を参照してください。
+詳細なGit操作については [`docs/getting-started/GIT_GUIDE.md`](./docs/getting-started/GIT_GUIDE.md) を参照してください。
 
-## 📚 ドキュメント一覧
-
-このプロジェクトには目的別に整理された15個のドキュメントがあります。
+## 📚 ドキュメント
 
 ### 🎯 まず読むべき文書
 
-| ドキュメント | 内容 | 読むべき人 |
-|-------------|------|-----------|
-| `README.md` (このファイル) | プロジェクト概要、セットアップ手順 | 全員（最初に必読） |
-| `TASKS.md` | 実装済み/未実装機能のリスト | 開発者、プロジェクト管理者 |
-| `DEVELOPMENT_GUIDE.md` | 機能開発の実践ガイド | 機能を追加する人 |
+| ドキュメント | 内容 | 対象者 |
+|-------------|------|--------|
+| `README.md` (このファイル) | プロジェクト概要、セットアップ手順 | **全員（最初に必読）** |
+| [`PLAN.md`](./PLAN.md) | 開発の全体計画、進捗状況、次のステップ | プロジェクト管理者 |
+| [`TASKS.md`](./TASKS.md) | 実装済み/未実装機能の詳細リスト | 開発者 |
+| [`INDEX.md`](./INDEX.md) | 全ドキュメントのインデックス | 迷った時に見る |
 
-### 🏗️ アーキテクチャ設計
+### 📖 詳細ドキュメント
 
-| ドキュメント | 内容 | 読むべき人 |
-|-------------|------|-----------|
-| `SYSTEM_DIAGRAMS.md` ⭐ | レイヤー構造・処理フローの図解（Mermaid） | 視覚的に理解したい人 |
-| `plan/LAYERED_ARCHITECTURE.md` ⭐ | 7層アーキテクチャの完全ガイド（29KB） | コードを書く人全員 |
-| `plan/APP_STRUCTURE.md` | システム全体の構造と動作フロー | システム全体を理解したい人 |
+詳細なドキュメントは `docs/` フォルダに整理されています：
 
-### 🔐 認証・権限管理
+```
+docs/
+├── getting-started/         # 🚀 初心者向けガイド
+│   ├── DEVELOPMENT_GUIDE.md  # 機能開発の実践ガイド
+│   └── GIT_GUIDE.md          # Git操作ガイド
+│
+├── architecture/            # 🏗️ アーキテクチャ設計
+│   ├── SYSTEM_DIAGRAMS.md    # システム図解（Mermaid）⭐
+│   ├── LAYERED_ARCHITECTURE.md  # 7層アーキテクチャ完全ガイド ⭐
+│   ├── APP_STRUCTURE.md      # システム全体の構造
+│   └── LOGIN_AND_DECORATORS.md  # 認証の詳細 ⭐
+│
+├── planning/                # 📊 計画・分析
+│   ├── ARCHITECTURE_DECISIONS.md  # 技術選定理由
+│   ├── FEATURE_ANALYSIS.md   # 全機能の需要分析
+│   └── USER_FLOW_MAPPING.md  # ユーザーフローと権限
+│
+├── migration/               # 🔄 移行計画
+│   ├── MIGRATION_TO_SQL.md   # SQL移行計画
+│   ├── SUPABASE_SETUP.md     # Supabase無料セットアップ
+│   ├── REACT_INTEGRATION.md  # React統合計画 ⭐
+│   └── REFACTORING_PLAN.md   # リファクタリング計画
+│
+└── archive/                 # 🗄️ 古いドキュメント
+```
 
-| ドキュメント | 内容 | 読むべき人 |
-|-------------|------|-----------|
-| `plan/LOGIN_AND_DECORATORS.md` ⭐ | ログイン機能とデコレーターの詳細解説（19KB） | 認証機能を触る人 |
-| `plan/USER_FLOW_MAPPING.md` | ユーザーフローと権限マッピング | UI/UX設計、権限設計する人 |
+⭐マークは特に重要なドキュメントです。
 
-### 📊 データベース・SQL移行
-
-| ドキュメント | 内容 | 読むべき人 |
-|-------------|------|-----------|
-| `plan/MIGRATION_TO_SQL.md` | CSV → SQL 移行計画 | DB移行を検討する人 |
-| `plan/SUPABASE_SETUP.md` | Supabase（無料PostgreSQL）セットアップ | 無料でSQL化したい人 |
-
-### 📈 機能分析・将来計画
-
-| ドキュメント | 内容 | 読むべき人 |
-|-------------|------|-----------|
-| `plan/FEATURE_ANALYSIS.md` | 全機能（72エンドポイント）の分析 | 機能の優先度を判断する人 |
-| `plan/ARCHITECTURE_DECISIONS.md` | 技術スタック選定理由 | 技術選定・コスト判断する人 |
-| `plan/REFACTORING_PLAN.md` | コード整理計画 | リファクタリングを検討する人 |
-| `plan/REACT_INTEGRATION.md` ⭐ | React統合計画とアーキテクチャ移行 | フロントエンド刷新する人 |
-
-### 🔧 運用・Git管理
-
-| ドキュメント | 内容 | 読むべき人 |
-|-------------|------|-----------|
-| `GIT_GUIDE.md` | Git操作ガイド | Git初心者、復習したい人 |
-| `plan/README.md` | plan/フォルダのインデックス | GCP作業する人 |
+全ドキュメントの詳細は [`INDEX.md`](./INDEX.md) を参照してください。
 
 ### 🎯 読む順番（推奨）
 
 #### 初めての人
 ```
 1. README.md (このファイル) - 全体概要
-2. SYSTEM_DIAGRAMS.md - 図で理解する（視覚的）
+2. docs/architecture/SYSTEM_DIAGRAMS.md - 図で理解
 3. TASKS.md - 現状把握
-4. plan/LAYERED_ARCHITECTURE.md - コードの書き方
-5. DEVELOPMENT_GUIDE.md - 開発手順
+4. docs/getting-started/DEVELOPMENT_GUIDE.md - 開発手順
 ```
 
 #### 機能開発する人
 ```
 1. TASKS.md - 何を実装するか確認
-2. SYSTEM_DIAGRAMS.md - 処理フローを図で確認
-3. plan/LAYERED_ARCHITECTURE.md - アーキテクチャ理解
-4. DEVELOPMENT_GUIDE.md - 実装方法
-5. GIT_GUIDE.md - コミット方法
+2. docs/architecture/LAYERED_ARCHITECTURE.md - アーキテクチャ理解
+3. docs/getting-started/DEVELOPMENT_GUIDE.md - 実装方法
 ```
 
-#### 認証機能を触る人
-```
-1. SYSTEM_DIAGRAMS.md - 認証フローの図
-2. plan/LOGIN_AND_DECORATORS.md - 認証の仕組み
-3. plan/USER_FLOW_MAPPING.md - 権限マトリクス
-4. plan/APP_STRUCTURE.md - 全体フロー
-```
-
-#### SQL移行を検討する人
-```
-1. plan/FEATURE_ANALYSIS.md - どの機能をSQL化すべきか
-2. plan/SUPABASE_SETUP.md - 無料で始める方法
-3. plan/MIGRATION_TO_SQL.md - 本格的な移行計画
-4. plan/ARCHITECTURE_DECISIONS.md - コスト判断
-```
+詳しい目的別ガイドは [`INDEX.md`](./INDEX.md) を参照してください。
 
 ## デプロイ
 
@@ -254,7 +236,7 @@ git push origin main
 gcloud app deploy
 ```
 
-詳細は `old/GCP_DEPLOYMENT.md` を参照してください。
+詳細は [`old/GCP_DEPLOYMENT.md`](./old/GCP_DEPLOYMENT.md) を参照してください。
 
 ## ライセンス
 
